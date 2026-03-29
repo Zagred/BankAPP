@@ -1,0 +1,138 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="BankAPP.MainPage"
+             Title="Finance Tracker">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+
+            <Label Text="Finance Tracker"
+                   FontSize="28"
+                   FontAttributes="Bold" />
+
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+
+                <Frame Grid.Row="0" Grid.Column="0" Padding="15" BorderColor="LightGray">
+                    <VerticalStackLayout>
+                        <Label Text="Balance" FontAttributes="Bold" FontSize="18"/>
+                        <Label x:Name="BalanceLabel" Text="0.00" FontSize="22"/>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <Frame Grid.Row="0" Grid.Column="1" Padding="15" BorderColor="LightGray">
+                    <VerticalStackLayout>
+                        <Label Text="Income" FontAttributes="Bold" FontSize="18"/>
+                        <Label x:Name="IncomeLabel" Text="0.00" FontSize="22"/>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <Frame Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Padding="15" BorderColor="LightGray">
+                    <VerticalStackLayout>
+                        <Label Text="Expense" FontAttributes="Bold" FontSize="18"/>
+                        <Label x:Name="ExpenseLabel" Text="0.00" FontSize="22"/>
+                    </VerticalStackLayout>
+                </Frame>
+            </Grid>
+
+            <Label Text="My Transactions"
+                   FontSize="26"
+                   FontAttributes="Bold" />
+
+            <Button Text="Export Transactions to JSON"
+        Clicked="OnExportJsonClicked" />
+            <Button Text="Export Transactions to XML"
+        Clicked="OnExportXmlClicked" />
+            <Button Text="Add Transaction"
+                    Clicked="OnOpenAddTransactionPageClicked" />
+
+            <Button Text="Refresh"
+                    Clicked="OnRefreshClicked" />
+
+            <Picker x:Name="FilterPicker"
+        Title="Filter by type"
+        SelectedIndexChanged="OnFilterChanged">
+                <Picker.ItemsSource>
+                    <x:Array Type="{x:Type x:String}">
+                        <x:String>all</x:String>
+                        <x:String>income</x:String>
+                        <x:String>expense</x:String>
+                    </x:Array>
+                </Picker.ItemsSource>
+            </Picker>
+            <Label Text="Expenses by Category"
+       FontSize="22"
+       FontAttributes="Bold" />
+
+            <CollectionView x:Name="CategorySummaryCollection"
+                SelectionMode="None"
+                HeightRequest="200">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Padding="10" Margin="0,5" BorderColor="LightGray">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Text="{Binding Category}"
+                           FontAttributes="Bold"
+                           FontSize="16" />
+                                <Label Grid.Column="1"
+                           Text="{Binding TotalAmount}"
+                           FontSize="16" />
+                            </Grid>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+            <CollectionView x:Name="TransactionsCollection"
+                SelectionMode="Single"
+                SelectionChanged="OnTransactionSelected">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Padding="10" Margin="0,5" BorderColor="LightGray">
+                            <VerticalStackLayout Spacing="5">
+                                <Label Text="{Binding Category}" FontAttributes="Bold" FontSize="18"/>
+                                <Label Text="{Binding Description}" />
+                                <Label Text="{Binding Type}" />
+                                <Label Text="{Binding Amount}" />
+                                <Label Text="{Binding Date}" />
+                            </VerticalStackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Label Text="Budgets"
+       FontSize="22"
+       FontAttributes="Bold" />
+
+            <Button Text="Add Budget"
+        Clicked="OnOpenAddBudgetPageClicked" />
+
+            <CollectionView x:Name="BudgetSummaryCollection"
+                SelectionMode="Single"
+                SelectionChanged="OnBudgetSelected"
+                HeightRequest="220">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Padding="10" Margin="0,5" BorderColor="LightGray">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="{Binding Category}"
+                           FontAttributes="Bold"
+                           FontSize="16" />
+                                <Label Text="{Binding LimitAmount, StringFormat='Budget: {0:F2}'}" />
+                                <Label Text="{Binding SpentAmount, StringFormat='Spent: {0:F2}'}" />
+                                <Label Text="{Binding RemainingAmount, StringFormat='Remaining: {0:F2}'}" />
+                                <Label Text="{Binding IsExceeded, StringFormat='Exceeded: {0}'}" />
+                            </VerticalStackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+            <Label x:Name="BudgetWarningLabel"
+       Text="Warning: Budget exceeded!"
+       TextColor="Red"
+       FontSize="18"
+       FontAttributes="Bold"
+       IsVisible="False" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
