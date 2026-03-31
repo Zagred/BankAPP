@@ -1,5 +1,7 @@
 ﻿using BankAPP.Data;
 using BankAPP.Models;
+using BankAPP.Services;
+using Microsoft.Maui.Storage;
 
 namespace BankAPP
 {
@@ -18,6 +20,7 @@ namespace BankAPP
         protected override async void OnAppearing()
         {
             base.OnAppearing();
+            WelcomeLabel.Text = $"Welcome, {SessionManager.CurrentUsername}!";
             await LoadDataAsync();
         }
 
@@ -32,20 +35,20 @@ namespace BankAPP
 
         private async Task LoadTransactionsAsync()
         {
-            string selectedFilter = "all";
+            string selectedFilter = FilterPicker?.SelectedItem?.ToString() ?? "all";
 
-            if (FilterPicker.SelectedItem != null)
-                selectedFilter = FilterPicker.SelectedItem.ToString() ?? "all";
+            var transactions = await _database.GetTransactionsByTypeAsync(
+                SessionManager.CurrentUserId,
+                selectedFilter);
 
-            var transactions = await _database.GetTransactionsByTypeAsync(selectedFilter);
             TransactionsCollection.ItemsSource = transactions;
         }
 
         private async Task LoadSummaryAsync()
         {
-            var income = await _database.GetTotalIncomeAsync();
-            var expense = await _database.GetTotalExpenseAsync();
-            var balance = await _database.GetBalanceAsync();
+            var income = await _database.GetTotalIncomeAsync(SessionManager.CurrentUserId);
+            var expense = await _database.GetTotalExpenseAsync(SessionManager.CurrentUserId);
+            var balance = await _database.GetBalanceAsync(SessionManager.CurrentUserId);
 
             IncomeLabel.Text = income.ToString("F2");
             ExpenseLabel.Text = expense.ToString("F2");
@@ -77,28 +80,42 @@ namespace BankAPP
             if (selectedTransaction == null)
                 return;
 
-            bool confirm = await DisplayAlert(
-                "Delete Transaction",
-                $"Do you want to delete '{selectedTransaction.Category} - {selectedTransaction.Amount:F2}'?",
-                "Yes",
-                "No");
+            string action = await DisplayActionSheet(
+                "Choose action",
+                "Cancel",
+                null,
+                "Edit",
+                "Delete");
 
-            if (confirm)
+            if (action == "Edit")
             {
-                await _database.DeleteTransactionAsync(selectedTransaction);
-                await LoadDataAsync();
+                await Navigation.PushAsync(new EditTransactionPage(_database, selectedTransaction));
+            }
+            else if (action == "Delete")
+            {
+                bool confirm = await DisplayAlert(
+                    "Delete",
+                    "Are you sure?",
+                    "Yes",
+                    "No");
+
+                if (confirm)
+                {
+                    await _database.DeleteTransactionAsync(selectedTransaction);
+                    await LoadDataAsync();
+                }
             }
 
             TransactionsCollection.SelectedItem = null;
         }
         private async Task LoadCategorySummaryAsync()
         {
-            var categorySummary = await _database.GetExpenseSummaryByCategoryAsync();
+            var categorySummary = await _database.GetExpenseSummaryByCategoryAsync(SessionManager.CurrentUserId);
             CategorySummaryCollection.ItemsSource = categorySummary;
         }
         private async Task LoadBudgetSummaryAsync()
         {
-            var budgets = await _database.GetBudgetSummariesAsync();
+            var budgets = await _database.GetBudgetSummariesAsync(SessionManager.CurrentUserId);
             BudgetSummaryCollection.ItemsSource = budgets;
         }
         private async void OnOpenAddBudgetPageClicked(object sender, EventArgs e)
@@ -115,7 +132,7 @@ namespace BankAPP
             if (selectedSummary == null)
                 return;
 
-            var budgets = await _database.GetBudgetsAsync();
+            var budgets = await _database.GetBudgetsAsync(SessionManager.CurrentUserId);
             var budgetToDelete = budgets.FirstOrDefault(b => b.Category == selectedSummary.Category);
 
             if (budgetToDelete == null)
@@ -137,7 +154,7 @@ namespace BankAPP
         }
         private async Task LoadBudgetWarningAsync()
         {
-            bool hasExceeded = await _database.HasExceededBudgetsAsync();
+            bool hasExceeded = await _database.HasExceededBudgetsAsync(SessionManager.CurrentUserId);
 
             if (hasExceeded)
             {
@@ -185,6 +202,64 @@ namespace BankAPP
                     "Export Error",
                     $"An error occurred while exporting:\n{ex.Message}",
                     "OK");
+            }
+        }
+        private async void OnLogoutClicked(object sender, EventArgs e)
+        {
+            bool confirm = await DisplayAlert(
+                "Logout",
+                "Do you want to log out?",
+                "Yes",
+                "No");
+
+            if (!confirm)
+                return;
+
+            SessionManager.Logout();
+            Application.Current!.MainPage = new NavigationPage(new LoginPage(_database));
+        }
+        private async void OnImportJsonClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                var result = await FilePicker.Default.PickAsync(new PickOptions
+                {
+                    PickerTitle = "Select JSON file"
+                });
+
+                if (result == null)
+                    return;
+
+                await _database.ImportTransactionsFromJsonAsync(result.FullPath);
+
+                await DisplayAlert("Success", "JSON imported successfully.", "OK");
+                await LoadDataAsync();
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", ex.Message, "OK");
+            }
+        }
+        private async void OnImportXmlClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                var result = await FilePicker.Default.PickAsync(new PickOptions
+                {
+                    PickerTitle = "Select XML file"
+                });
+
+                if (result == null)
+                    return;
+
+                await _database.ImportTransactionsFromXmlAsync(result.FullPath);
+
+                await DisplayAlert("Success", "XML imported successfully.", "OK");
+                await LoadDataAsync();
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", ex.Message, "OK");
             }
         }
     }

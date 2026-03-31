@@ -10,6 +10,12 @@
             <Label Text="Finance Tracker"
                    FontSize="28"
                    FontAttributes="Bold" />
+            <Label x:Name="WelcomeLabel"
+       Text="Welcome!"
+       FontSize="18"
+       FontAttributes="Italic" />
+            <Button Text="Logout"
+        Clicked="OnLogoutClicked" />
 
             <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
 
@@ -43,6 +49,11 @@
         Clicked="OnExportJsonClicked" />
             <Button Text="Export Transactions to XML"
         Clicked="OnExportXmlClicked" />
+            <Button Text="Import JSON"
+        Clicked="OnImportJsonClicked" />
+
+            <Button Text="Import XML"
+        Clicked="OnImportXmlClicked" />
             <Button Text="Add Transaction"
                     Clicked="OnOpenAddTransactionPageClicked" />
 

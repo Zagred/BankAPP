@@ -22,10 +22,12 @@ namespace BankAPP.Data
             await _database.CreateTableAsync<User>();
         }
 
-        public async Task<List<Transaction>> GetTransactionsAsync()
+        public async Task<List<Transaction>> GetTransactionsAsync(int userId)
         {
             await InitAsync();
+
             return await _database.Table<Transaction>()
+                                  .Where(t => t.UserId == userId)
                                   .OrderByDescending(t => t.Date)
                                   .ToListAsync();
         }
@@ -41,39 +43,46 @@ namespace BankAPP.Data
             await InitAsync();
             return await _database.DeleteAsync(transaction);
         }
-        public async Task<decimal> GetTotalIncomeAsync()
+        public async Task<decimal> GetTotalIncomeAsync(int userId)
         {
             await InitAsync();
 
-            var transactions = await _database.Table<Transaction>().ToListAsync();
+            var transactions = await _database.Table<Transaction>()
+                                              .Where(t => t.UserId == userId)
+                                              .ToListAsync();
+
             return transactions
                 .Where(t => t.Type == "income")
                 .Sum(t => t.Amount);
         }
 
-        public async Task<decimal> GetTotalExpenseAsync()
+        public async Task<decimal> GetTotalExpenseAsync(int userId)
         {
             await InitAsync();
 
-            var transactions = await _database.Table<Transaction>().ToListAsync();
+            var transactions = await _database.Table<Transaction>()
+                                              .Where(t => t.UserId == userId)
+                                              .ToListAsync();
+
             return transactions
                 .Where(t => t.Type == "expense")
                 .Sum(t => t.Amount);
         }
 
-        public async Task<decimal> GetBalanceAsync()
+        public async Task<decimal> GetBalanceAsync(int userId)
         {
-            var income = await GetTotalIncomeAsync();
-            var expense = await GetTotalExpenseAsync();
+            var income = await GetTotalIncomeAsync(userId);
+            var expense = await GetTotalExpenseAsync(userId);
 
             return income - expense;
         }
 
-        public async Task<List<Transaction>> GetTransactionsByTypeAsync(string type)
+        public async Task<List<Transaction>> GetTransactionsByTypeAsync(int userId, string type)
         {
             await InitAsync();
 
             var transactions = await _database.Table<Transaction>()
+                                              .Where(t => t.UserId == userId)
                                               .OrderByDescending(t => t.Date)
                                               .ToListAsync();
 
@@ -87,22 +96,29 @@ namespace BankAPP.Data
             await InitAsync();
             return await _database.InsertAsync(budget);
         }
-        public async Task<List<Budget>> GetBudgetsAsync()
+        public async Task<List<Budget>> GetBudgetsAsync(int userId)
         {
             await InitAsync();
-            return await _database.Table<Budget>().ToListAsync();
+            return await _database.Table<Budget>()
+                                  .Where(b => b.UserId == userId)
+                                  .ToListAsync();
         }
         public async Task<int> DeleteBudgetAsync(Budget budget)
         {
             await InitAsync();
             return await _database.DeleteAsync(budget);
         }
-        public async Task<List<BudgetSummary>> GetBudgetSummariesAsync()
+        public async Task<List<BudgetSummary>> GetBudgetSummariesAsync(int userId)
         {
             await InitAsync();
 
-            var budgets = await _database.Table<Budget>().ToListAsync();
-            var transactions = await _database.Table<Transaction>().ToListAsync();
+            var budgets = await _database.Table<Budget>()
+                                         .Where(b => b.UserId == userId)
+                                         .ToListAsync();
+
+            var transactions = await _database.Table<Transaction>()
+                                              .Where(t => t.UserId == userId)
+                                              .ToListAsync();
 
             var result = budgets.Select(b =>
             {
@@ -125,11 +141,13 @@ namespace BankAPP.Data
 
             return result;
         }
-        public async Task<List<CategorySummary>> GetExpenseSummaryByCategoryAsync()
+        public async Task<List<CategorySummary>> GetExpenseSummaryByCategoryAsync(int userId)
         {
             await InitAsync();
 
-            var transactions = await _database.Table<Transaction>().ToListAsync();
+            var transactions = await _database.Table<Transaction>()
+                                              .Where(t => t.UserId == userId)
+                                              .ToListAsync();
 
             var result = transactions
                 .Where(t => t.Type == "expense")
@@ -144,9 +162,9 @@ namespace BankAPP.Data
 
             return result;
         }
-        public async Task<bool> HasExceededBudgetsAsync()
+        public async Task<bool> HasExceededBudgetsAsync(int userId)
         {
-            var budgets = await GetBudgetSummariesAsync();
+            var budgets = await GetBudgetSummariesAsync(userId);
             return budgets.Any(b => b.IsExceeded);
         }
         public async Task<string> ExportTransactionsToJsonAsync()
@@ -209,6 +227,55 @@ namespace BankAPP.Data
 
             return await _database.Table<User>()
                                   .FirstOrDefaultAsync(u => u.Username == username);
+        }
+        public async Task<int> UpdateTransactionAsync(Transaction transaction)
+        {
+            await InitAsync();
+            return await _database.UpdateAsync(transaction);
+        }
+        public async Task ImportTransactionsFromJsonAsync(string filePath)
+        {
+            await InitAsync();
+
+            var json = await File.ReadAllTextAsync(filePath);
+
+            var transactions = JsonSerializer.Deserialize<List<Transaction>>(json);
+
+            if (transactions == null)
+                return;
+
+            foreach (var t in transactions)
+            {
+                t.Id = 0;
+                await _database.InsertAsync(t);
+            }
+        }
+        public async Task ImportTransactionsFromXmlAsync(string filePath)
+        {
+            await InitAsync();
+
+            var xml = XDocument.Load(filePath);
+
+            var transactions = xml.Root?
+                .Elements("Transaction")
+                .Select(t => new Transaction
+                {
+                    Id = 0,
+                    Amount = decimal.Parse(t.Element("Amount")?.Value ?? "0"),
+                    Type = t.Element("Type")?.Value ?? "expense",
+                    Category = t.Element("Category")?.Value ?? "",
+                    Description = t.Element("Description")?.Value ?? "",
+                    Date = DateTime.Parse(t.Element("Date")?.Value ?? DateTime.Now.ToString())
+                })
+                .ToList();
+
+            if (transactions == null)
+                return;
+
+            foreach (var t in transactions)
+            {
+                await _database.InsertAsync(t);
+            }
         }
     }
 }

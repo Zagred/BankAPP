@@ -7,10 +7,11 @@ namespace BankAPP.Models
         [PrimaryKey, AutoIncrement]
         public int Id { get; set; }
 
+        public int UserId { get; set; }
+
         public decimal Amount { get; set; }
 
         public string Type { get; set; } = string.Empty;
-        // income / expense
 
         public string Category { get; set; } = string.Empty;
 

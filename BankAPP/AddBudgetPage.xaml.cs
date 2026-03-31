@@ -1,5 +1,6 @@
 using BankAPP.Data;
 using BankAPP.Models;
+using BankAPP.Services;
 
 namespace BankAPP
 {
@@ -30,6 +31,7 @@ namespace BankAPP
 
             var budget = new Budget
             {
+                UserId = SessionManager.CurrentUserId,
                 Category = CategoryEntry.Text,
                 LimitAmount = limit
             };

@@ -39,6 +39,8 @@ namespace BankAPP
                 await DisplayAlert("Error", "Invalid password.", "OK");
                 return;
             }
+            SessionManager.CurrentUserId = user.Id;
+            SessionManager.CurrentUsername = user.Username;
 
             await DisplayAlert("Success", "Login successful.", "OK");
             Application.Current!.MainPage = new NavigationPage(new MainPage(_database));
