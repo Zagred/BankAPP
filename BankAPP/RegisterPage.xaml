@@ -5,24 +5,46 @@
              Title="Register">
 
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="15">
+        <VerticalStackLayout Padding="30" Spacing="20" VerticalOptions="Center">
 
-            <Label Text="Register"
-                   FontSize="28"
-                   FontAttributes="Bold" />
+            <Label Text="BankAPP"
+                   FontSize="34"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center" />
 
-            <Entry x:Name="UsernameEntry"
-                   Placeholder="Username" />
+            <Label Text="Create your account"
+                   FontSize="18"
+                   HorizontalOptions="Center"
+                   Opacity="0.8" />
 
-            <Entry x:Name="PasswordEntry"
-                   Placeholder="Password"
-                   IsPassword="True" />
+            <Frame Padding="20" CornerRadius="18" BorderColor="LightGray">
+                <VerticalStackLayout Spacing="16">
 
-            <Button Text="Create Account"
-                    Clicked="OnRegisterClicked" />
+                    <Label Text="Register"
+                           FontSize="28"
+                           FontAttributes="Bold" />
 
-            <Button Text="Go to Login"
-                    Clicked="OnGoToLoginClicked" />
+                    <Entry x:Name="UsernameEntry"
+                           Placeholder="Username"
+                           ClearButtonVisibility="WhileEditing" />
+
+                    <Entry x:Name="PasswordEntry"
+                           Placeholder="Password"
+                           IsPassword="True"
+                           ClearButtonVisibility="WhileEditing" />
+
+                    <Button Text="Create Account"
+                            HeightRequest="50"
+                            CornerRadius="12"
+                            Clicked="OnRegisterClicked" />
+
+                    <Button Text="Back to login"
+                            HeightRequest="45"
+                            CornerRadius="12"
+                            Clicked="OnGoToLoginClicked" />
+
+                </VerticalStackLayout>
+            </Frame>
 
         </VerticalStackLayout>
     </ScrollView>

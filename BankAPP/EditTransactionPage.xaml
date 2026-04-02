@@ -5,33 +5,46 @@
              Title="Edit Transaction">
 
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="15">
+        <VerticalStackLayout Padding="24" Spacing="18">
 
             <Label Text="Edit Transaction"
-                   FontSize="26"
+                   FontSize="30"
                    FontAttributes="Bold" />
 
-            <Entry x:Name="AmountEntry"
-                   Placeholder="Amount"
-                   Keyboard="Numeric" />
+            <Label Text="Update the details below"
+                   FontSize="16"
+                   Opacity="0.8" />
 
-            <Picker x:Name="TypePicker" Title="Type">
-                <Picker.Items>
-                    <x:String>income</x:String>
-                    <x:String>expense</x:String>
-                </Picker.Items>
-            </Picker>
+            <Frame Padding="20" CornerRadius="18" BorderColor="LightGray">
+                <VerticalStackLayout Spacing="15">
 
-            <Entry x:Name="CategoryEntry"
-                   Placeholder="Category" />
+                    <Entry x:Name="AmountEntry"
+                           Placeholder="Amount"
+                           Keyboard="Numeric" />
 
-            <Entry x:Name="DescriptionEntry"
-                   Placeholder="Description" />
+                    <Picker x:Name="TypePicker"
+                            Title="Type">
+                        <Picker.Items>
+                            <x:String>income</x:String>
+                            <x:String>expense</x:String>
+                        </Picker.Items>
+                    </Picker>
 
-            <DatePicker x:Name="DatePicker" />
+                    <Entry x:Name="CategoryEntry"
+                           Placeholder="Category" />
 
-            <Button Text="Save Changes"
-                    Clicked="OnSaveClicked" />
+                    <Entry x:Name="DescriptionEntry"
+                           Placeholder="Description" />
+
+                    <DatePicker x:Name="DatePicker" />
+
+                    <Button Text="Save Changes"
+                            HeightRequest="50"
+                            CornerRadius="12"
+                            Clicked="OnSaveClicked" />
+
+                </VerticalStackLayout>
+            </Frame>
 
         </VerticalStackLayout>
     </ScrollView>

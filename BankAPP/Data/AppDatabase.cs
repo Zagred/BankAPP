@@ -277,5 +277,37 @@ namespace BankAPP.Data
                 await _database.InsertAsync(t);
             }
         }
+        public async Task<List<CategoryChartItem>> GetExpenseChartDataAsync(int userId)
+        {
+            await InitAsync();
+
+            var transactions = await _database.Table<Transaction>()
+                                              .Where(t => t.UserId == userId && t.Type == "expense")
+                                              .ToListAsync();
+
+            var grouped = transactions
+                .GroupBy(t => t.Category)
+                .Select(g => new
+                {
+                    Category = g.Key,
+                    TotalAmount = g.Sum(t => t.Amount)
+                })
+                .OrderByDescending(x => x.TotalAmount)
+                .ToList();
+
+            if (!grouped.Any())
+                return new List<CategoryChartItem>();
+
+            var totalAmount = grouped.Sum(x => x.TotalAmount);
+
+            var result = grouped.Select(x => new CategoryChartItem
+            {
+                Category = x.Category,
+                TotalAmount = x.TotalAmount,
+                Percentage = totalAmount == 0 ? 0 : (double)(x.TotalAmount / totalAmount)
+            }).ToList();
+
+            return result;
+        }
     }
 }

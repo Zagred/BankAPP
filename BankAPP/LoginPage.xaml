@@ -5,24 +5,46 @@
              Title="Login">
 
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="15">
+        <VerticalStackLayout Padding="30" Spacing="20" VerticalOptions="Center">
 
-            <Label Text="Login"
-                   FontSize="28"
-                   FontAttributes="Bold" />
+            <Label Text="BankAPP"
+                   FontSize="34"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center" />
 
-            <Entry x:Name="UsernameEntry"
-                   Placeholder="Username" />
+            <Label Text="Welcome back"
+                   FontSize="18"
+                   HorizontalOptions="Center"
+                   Opacity="0.8" />
 
-            <Entry x:Name="PasswordEntry"
-                   Placeholder="Password"
-                   IsPassword="True" />
+            <Frame Padding="20" CornerRadius="18" BorderColor="LightGray">
+                <VerticalStackLayout Spacing="16">
 
-            <Button Text="Login"
-                    Clicked="OnLoginClicked" />
+                    <Label Text="Login"
+                           FontSize="28"
+                           FontAttributes="Bold" />
 
-            <Button Text="Go to Register"
-                    Clicked="OnGoToRegisterClicked" />
+                    <Entry x:Name="UsernameEntry"
+                           Placeholder="Username"
+                           ClearButtonVisibility="WhileEditing" />
+
+                    <Entry x:Name="PasswordEntry"
+                           Placeholder="Password"
+                           IsPassword="True"
+                           ClearButtonVisibility="WhileEditing" />
+
+                    <Button Text="Login"
+                            HeightRequest="50"
+                            CornerRadius="12"
+                            Clicked="OnLoginClicked" />
+
+                    <Button Text="Create a new account"
+                            HeightRequest="45"
+                            CornerRadius="12"
+                            Clicked="OnGoToRegisterClicked" />
+
+                </VerticalStackLayout>
+            </Frame>
 
         </VerticalStackLayout>
     </ScrollView>

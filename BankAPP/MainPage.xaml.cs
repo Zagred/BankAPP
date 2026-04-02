@@ -31,6 +31,7 @@ namespace BankAPP
             await LoadCategorySummaryAsync();
             await LoadBudgetSummaryAsync();
             await LoadBudgetWarningAsync();
+            await LoadExpenseChartAsync();
         }
 
         private async Task LoadTransactionsAsync()
@@ -261,6 +262,11 @@ namespace BankAPP
             {
                 await DisplayAlert("Error", ex.Message, "OK");
             }
+        }
+        private async Task LoadExpenseChartAsync()
+        {
+            var chartData = await _database.GetExpenseChartDataAsync(SessionManager.CurrentUserId);
+            ExpenseChartCollection.ItemsSource = chartData;
         }
     }
 }
