@@ -1,5 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
-using BankAPP.Data;
+using BankAPP.Shared.Data;
+using BankAPP.Shared.Models;
+using BankAPP.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace BankAPP
 {
@@ -21,12 +24,17 @@ namespace BankAPP
             builder.Logging.AddDebug();
 #endif
 
-            builder.Services.AddSingleton<AppDatabase>();
-            builder.Services.AddSingleton<MainPage>();
-            builder.Services.AddTransient<AddTransactionPage>();
-            builder.Services.AddTransient<AddBudgetPage>();
+            builder.Services.AddDbContextFactory<AppDbContext>(options =>
+                options.UseSqlServer(
+                    "Server=localhost\\SQLEXPRESS;Database=BankAppDb;Trusted_Connection=True;TrustServerCertificate=True;"));
+
+            builder.Services.AddTransient<UserService>();
+            builder.Services.AddTransient<MovementService>();
+
             builder.Services.AddTransient<LoginPage>();
             builder.Services.AddTransient<RegisterPage>();
+            builder.Services.AddTransient<MainPage>();
+            builder.Services.AddTransient<AddMovementPage>();
 
             return builder.Build();
         }

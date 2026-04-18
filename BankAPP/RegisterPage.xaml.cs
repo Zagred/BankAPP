@@ -1,54 +1,43 @@
-using BankAPP.Data;
-using BankAPP.Models;
 using BankAPP.Services;
 
 namespace BankAPP
 {
     public partial class RegisterPage : ContentPage
     {
-        private readonly AppDatabase _database;
+        private readonly UserService _userService;
 
-        public RegisterPage(AppDatabase database)
+        public RegisterPage(UserService userService)
         {
             InitializeComponent();
-            _database = database;
+            _userService = userService;
         }
 
         private async void OnRegisterClicked(object sender, EventArgs e)
         {
-            var username = UsernameEntry.Text?.Trim();
-            var password = PasswordEntry.Text?.Trim();
+            var username = UsernameEntry.Text;
+            var password = PasswordEntry.Text;
 
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
             {
-                await DisplayAlert("Error", "Username and password are required.", "OK");
+                await DisplayAlert("Error", "Please enter username and password.", "OK");
                 return;
             }
 
-            var existingUser = await _database.GetUserByUsernameAsync(username);
-            if (existingUser != null)
+            var success = await _userService.RegisterUserAsync(username, password);
+
+            if (!success)
             {
-                await DisplayAlert("Error", "Username already exists.", "OK");
+                await DisplayAlert("Error", "User already exists", "OK");
                 return;
             }
 
-            var passwordHash = SecurityService.ComputeSha256Hash(password);
-
-            var user = new User
-            {
-                Username = username,
-                PasswordHash = passwordHash
-            };
-
-            await _database.AddUserAsync(user);
-
-            await DisplayAlert("Success", "Account created successfully.", "OK");
-            await Navigation.PushAsync(new LoginPage(_database));
+            await DisplayAlert("Success", "Account created", "OK");
+            await Navigation.PopAsync();
         }
 
         private async void OnGoToLoginClicked(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new LoginPage(_database));
+            await Navigation.PopAsync();
         }
     }
 }

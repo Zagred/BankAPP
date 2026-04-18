@@ -1,13 +1,15 @@
-﻿using BankAPP.Data;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace BankAPP
 {
     public partial class App : Application
     {
-        public App(AppDatabase database)
+        public App(IServiceProvider serviceProvider)
         {
             InitializeComponent();
-            MainPage = new NavigationPage(new LoginPage(database));
+
+            var loginPage = serviceProvider.GetRequiredService<LoginPage>();
+            MainPage = new NavigationPage(loginPage);
         }
     }
 }

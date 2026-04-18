@@ -2,14 +2,14 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="BankAPP.MainPage"
-             Title="Finance Tracker">
+             Title="Bank Dashboard">
 
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="18">
 
             <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
                 <VerticalStackLayout Spacing="4">
-                    <Label Text="Finance Tracker"
+                    <Label Text="Bank Dashboard"
                            FontSize="30"
                            FontAttributes="Bold" />
 
@@ -27,13 +27,6 @@
                         Clicked="OnLogoutClicked" />
             </Grid>
 
-            <Label x:Name="BudgetWarningLabel"
-                   Text="Warning: Budget exceeded!"
-                   TextColor="Red"
-                   FontSize="16"
-                   FontAttributes="Bold"
-                   IsVisible="False" />
-
             <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
 
                 <Frame Grid.Row="0" Grid.Column="0" Padding="16" CornerRadius="18" BorderColor="LightGray">
@@ -45,14 +38,14 @@
 
                 <Frame Grid.Row="0" Grid.Column="1" Padding="16" CornerRadius="18" BorderColor="LightGray">
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="Income" FontAttributes="Bold" FontSize="16"/>
+                        <Label Text="Credit" FontAttributes="Bold" FontSize="16"/>
                         <Label x:Name="IncomeLabel" Text="0.00" FontSize="24"/>
                     </VerticalStackLayout>
                 </Frame>
 
                 <Frame Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Padding="16" CornerRadius="18" BorderColor="LightGray">
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="Expense" FontAttributes="Bold" FontSize="16"/>
+                        <Label Text="Debit" FontAttributes="Bold" FontSize="16"/>
                         <Label x:Name="ExpenseLabel" Text="0.00" FontSize="24"/>
                     </VerticalStackLayout>
                 </Frame>
@@ -65,85 +58,25 @@
                            FontSize="22"
                            FontAttributes="Bold" />
 
-                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="10">
-                        <Button Grid.Row="0" Grid.Column="0"
-                                Text="Add Transaction"
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button Grid.Column="0"
+                                Text="Add Movement"
                                 CornerRadius="12"
-                                Clicked="OnOpenAddTransactionPageClicked" />
+                                Clicked="OnAddMovementClicked" />
 
-                        <Button Grid.Row="0" Grid.Column="1"
-                                Text="Add Budget"
+                        <Button Grid.Column="1"
+                                Text="Refresh"
                                 CornerRadius="12"
-                                Clicked="OnOpenAddBudgetPageClicked" />
-
-                        <Button Grid.Row="1" Grid.Column="0"
-                                Text="Import JSON"
-                                CornerRadius="12"
-                                Clicked="OnImportJsonClicked" />
-
-                        <Button Grid.Row="1" Grid.Column="1"
-                                Text="Import XML"
-                                CornerRadius="12"
-                                Clicked="OnImportXmlClicked" />
-
-                        <Button Grid.Row="2" Grid.Column="0"
-                                Text="Export JSON"
-                                CornerRadius="12"
-                                Clicked="OnExportJsonClicked" />
-
-                        <Button Grid.Row="2" Grid.Column="1"
-                                Text="Export XML"
-                                CornerRadius="12"
-                                Clicked="OnExportXmlClicked" />
+                                Clicked="OnRefreshClicked" />
                     </Grid>
 
-                    <Button Text="Refresh"
-                            CornerRadius="12"
-                            Clicked="OnRefreshClicked" />
-
                 </VerticalStackLayout>
             </Frame>
 
             <Frame Padding="16" CornerRadius="18" BorderColor="LightGray">
                 <VerticalStackLayout Spacing="12">
-                    <Label Text="Expense Chart"
-                           FontSize="22"
-                           FontAttributes="Bold" />
 
-                    <CollectionView x:Name="ExpenseChartCollection"
-                                    SelectionMode="None"
-                                    HeightRequest="220">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate>
-                                <Frame Padding="10" Margin="0,5" CornerRadius="14" BorderColor="LightGray">
-                                    <VerticalStackLayout Spacing="6">
-                                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
-                                            <Label Text="{Binding Category}"
-                                                   FontAttributes="Bold"
-                                                   FontSize="16" />
-
-                                            <Label Grid.Column="1"
-                                                   Text="{Binding TotalAmount, StringFormat='{0:F2}'}"
-                                                   FontSize="16" />
-
-                                            <Label Grid.Column="2"
-                                                   Text="{Binding PercentageText}"
-                                                   FontSize="14" />
-                                        </Grid>
-
-                                        <ProgressBar Progress="{Binding Percentage}"
-                                                     HeightRequest="12" />
-                                    </VerticalStackLayout>
-                                </Frame>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                </VerticalStackLayout>
-            </Frame>
-
-            <Frame Padding="16" CornerRadius="18" BorderColor="LightGray">
-                <VerticalStackLayout Spacing="12">
-                    <Label Text="Transactions"
+                    <Label Text="Movements"
                            FontSize="22"
                            FontAttributes="Bold" />
 
@@ -153,21 +86,23 @@
                         <Picker.ItemsSource>
                             <x:Array Type="{x:Type x:String}">
                                 <x:String>all</x:String>
-                                <x:String>income</x:String>
-                                <x:String>expense</x:String>
+                                <x:String>card_payment</x:String>
+                                <x:String>transfer</x:String>
+                                <x:String>cash_withdrawal</x:String>
+                                <x:String>deposit</x:String>
+                                <x:String>fee</x:String>
                             </x:Array>
                         </Picker.ItemsSource>
                     </Picker>
 
                     <CollectionView x:Name="TransactionsCollection"
-                                    SelectionMode="Single"
-                                    SelectionChanged="OnTransactionSelected">
+                                    SelectionMode="None">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
                                 <Frame Padding="12" Margin="0,5" CornerRadius="14" BorderColor="LightGray">
                                     <VerticalStackLayout Spacing="6">
                                         <Grid ColumnDefinitions="*,Auto">
-                                            <Label Text="{Binding Category}"
+                                            <Label Text="{Binding MovementType}"
                                                    FontAttributes="Bold"
                                                    FontSize="18"/>
                                             <Label Grid.Column="1"
@@ -176,70 +111,17 @@
                                         </Grid>
 
                                         <Label Text="{Binding Description}" />
-                                        <Label Text="{Binding Type}" Opacity="0.8" />
-                                        <Label Text="{Binding Date, StringFormat='{0:dd.MM.yyyy HH:mm}'}"
+                                        <Label Text="{Binding Status}" Opacity="0.8" />
+                                        <Label Text="{Binding Currency}" Opacity="0.8" />
+                                        <Label Text="{Binding ReferenceNumber}" Opacity="0.8" />
+                                        <Label Text="{Binding MovementDateTime, StringFormat='{0:dd.MM.yyyy HH:mm}'}"
                                                Opacity="0.8" />
                                     </VerticalStackLayout>
                                 </Frame>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
-                </VerticalStackLayout>
-            </Frame>
 
-            <Frame Padding="16" CornerRadius="18" BorderColor="LightGray">
-                <VerticalStackLayout Spacing="12">
-                    <Label Text="Expenses by Category"
-                           FontSize="22"
-                           FontAttributes="Bold" />
-
-                    <CollectionView x:Name="CategorySummaryCollection"
-                                    SelectionMode="None"
-                                    HeightRequest="200">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate>
-                                <Frame Padding="10" Margin="0,5" CornerRadius="14" BorderColor="LightGray">
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <Label Text="{Binding Category}"
-                                               FontAttributes="Bold"
-                                               FontSize="16" />
-                                        <Label Grid.Column="1"
-                                               Text="{Binding TotalAmount, StringFormat='{0:F2}'}"
-                                               FontSize="16" />
-                                    </Grid>
-                                </Frame>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                </VerticalStackLayout>
-            </Frame>
-
-            <Frame Padding="16" CornerRadius="18" BorderColor="LightGray">
-                <VerticalStackLayout Spacing="12">
-                    <Label Text="Budgets"
-                           FontSize="22"
-                           FontAttributes="Bold" />
-
-                    <CollectionView x:Name="BudgetSummaryCollection"
-                                    SelectionMode="Single"
-                                    SelectionChanged="OnBudgetSelected"
-                                    HeightRequest="220">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate>
-                                <Frame Padding="12" Margin="0,5" CornerRadius="14" BorderColor="LightGray">
-                                    <VerticalStackLayout Spacing="4">
-                                        <Label Text="{Binding Category}"
-                                               FontAttributes="Bold"
-                                               FontSize="16" />
-                                        <Label Text="{Binding LimitAmount, StringFormat='Budget: {0:F2}'}" />
-                                        <Label Text="{Binding SpentAmount, StringFormat='Spent: {0:F2}'}" />
-                                        <Label Text="{Binding RemainingAmount, StringFormat='Remaining: {0:F2}'}" />
-                                        <Label Text="{Binding IsExceeded, StringFormat='Exceeded: {0}'}" />
-                                    </VerticalStackLayout>
-                                </Frame>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
                 </VerticalStackLayout>
             </Frame>
 
