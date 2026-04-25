@@ -5,13 +5,13 @@ namespace BankAPP
 {
     public partial class LoginPage : ContentPage
     {
-        private readonly UserService _userService;
+        private readonly UserApiService _userApiService;
         private readonly IServiceProvider _serviceProvider;
 
-        public LoginPage(UserService userService, IServiceProvider serviceProvider)
+        public LoginPage(UserApiService userApiService, IServiceProvider serviceProvider)
         {
             InitializeComponent();
-            _userService = userService;
+            _userApiService = userApiService;
             _serviceProvider = serviceProvider;
         }
 
@@ -26,16 +26,17 @@ namespace BankAPP
                 return;
             }
 
-            var user = await _userService.GetUserByUsernameAsync(username);
+            var loginResponse = await _userApiService.LoginAsync(username, password);
 
-            if (user == null || user.PasswordHash != password)
+            if (loginResponse == null)
             {
                 await DisplayAlert("Error", "Invalid credentials", "OK");
                 return;
             }
 
-            SessionManager.CurrentUserId = user.Id;
-            SessionManager.CurrentUsername = user.Username;
+            SessionManager.CurrentUserId = loginResponse.User.Id;
+            SessionManager.CurrentUsername = loginResponse.User.Username;
+            SessionManager.Token = loginResponse.Token;
 
             var mainPage = _serviceProvider.GetRequiredService<MainPage>();
             await Navigation.PushAsync(mainPage);

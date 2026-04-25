@@ -1,16 +1,17 @@
-using BankAPP.Shared.Models;
+using BankAPP.Models;
 using BankAPP.Services;
+using BankAPP.Shared.Models;
 
 namespace BankAPP
 {
     public partial class AddMovementPage : ContentPage
     {
-        private readonly MovementService _movementService;
+        private readonly MovementApiService _movementApiService;
 
-        public AddMovementPage(MovementService movementService)
+        public AddMovementPage(MovementApiService movementApiService)
         {
             InitializeComponent();
-            _movementService = movementService;
+            _movementApiService = movementApiService;
         }
 
         private async void OnAddClicked(object sender, EventArgs e)
@@ -37,7 +38,6 @@ namespace BankAPP
                 ReferenceNumber = Guid.NewGuid().ToString()
             };
 
-            await _movementService.AddMovementAsync(SessionManager.CurrentUserId, movement);
 
             await DisplayAlert("Success", "Movement added successfully.", "OK");
             await Navigation.PopAsync();

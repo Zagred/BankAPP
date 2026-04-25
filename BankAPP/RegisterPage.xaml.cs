@@ -1,37 +1,48 @@
 using BankAPP.Services;
+using BankAPP.Shared.DTOs;
 
 namespace BankAPP
 {
     public partial class RegisterPage : ContentPage
     {
-        private readonly UserService _userService;
+        private readonly UserApiService _userApiService;
 
-        public RegisterPage(UserService userService)
+        public RegisterPage(UserApiService userApiService)
         {
             InitializeComponent();
-            _userService = userService;
+            _userApiService = userApiService;
         }
 
         private async void OnRegisterClicked(object sender, EventArgs e)
         {
-            var username = UsernameEntry.Text;
-            var password = PasswordEntry.Text;
-
-            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+            if (string.IsNullOrWhiteSpace(NameEntry.Text) ||
+                string.IsNullOrWhiteSpace(UsernameEntry.Text) ||
+                string.IsNullOrWhiteSpace(EmailEntry.Text) ||
+                string.IsNullOrWhiteSpace(EgnEntry.Text) ||
+                string.IsNullOrWhiteSpace(PasswordEntry.Text))
             {
-                await DisplayAlert("Error", "Please enter username and password.", "OK");
+                await DisplayAlert("Error", "Please fill all fields.", "OK");
                 return;
             }
 
-            var success = await _userService.RegisterUserAsync(username, password);
+            var request = new RegisterRequest
+            {
+                Name = NameEntry.Text,
+                Username = UsernameEntry.Text,
+                Email = EmailEntry.Text,
+                Egn = EgnEntry.Text,
+                Password = PasswordEntry.Text
+            };
+
+            var success = await _userApiService.RegisterAsync(request);
 
             if (!success)
             {
-                await DisplayAlert("Error", "User already exists", "OK");
+                await DisplayAlert("Error", "Could not create account. Username, email or EGN may already exist.", "OK");
                 return;
             }
 
-            await DisplayAlert("Success", "Account created", "OK");
+            await DisplayAlert("Success", "Account created successfully.", "OK");
             await Navigation.PopAsync();
         }
 

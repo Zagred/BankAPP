@@ -1,10 +1,15 @@
-﻿using BankAPP.Shared.Data;
+﻿using System.Security.Claims;
+using BankAPP.Shared.Data;
+using BankAPP.Shared.DTOs;
+using BankAPP.Shared.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace BankAPI.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class MovementsController : ControllerBase
     {
@@ -15,19 +20,21 @@ namespace BankAPI.Controllers
             _context = context;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
+        private int GetUserId()
         {
-            var movements = await _context.Movements
-                .OrderByDescending(m => m.MovementDateTime)
-                .ToListAsync();
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            return Ok(movements);
+            if (userIdClaim == null)
+                throw new UnauthorizedAccessException();
+
+            return int.Parse(userIdClaim);
         }
 
-        [HttpGet("user/{userId:int}")]
-        public async Task<IActionResult> GetByUser(int userId)
+        [HttpGet("me")]
+        public async Task<IActionResult> GetMyMovements()
         {
+            var userId = GetUserId();
+
             var accountIds = await _context.UserAccounts
                 .Where(ua => ua.UserId == userId)
                 .Select(ua => ua.AccountId)
@@ -35,6 +42,64 @@ namespace BankAPI.Controllers
 
             var movements = await _context.Movements
                 .Where(m => accountIds.Contains(m.AccountId))
+                .OrderByDescending(m => m.MovementDateTime)
+                .ToListAsync();
+
+            return Ok(movements);
+        }
+
+        [HttpPost("me")]
+        public async Task<IActionResult> AddMyMovement(CreateMovementRequest request)
+        {
+            var userId = GetUserId();
+
+            var accountId = await _context.UserAccounts
+                .Where(ua => ua.UserId == userId)
+                .Select(ua => ua.AccountId)
+                .FirstOrDefaultAsync();
+
+            if (accountId == 0)
+                return BadRequest(new { message = "User has no account" });
+
+            var movement = new Movement
+            {
+                AccountId = accountId,
+                Amount = request.Amount,
+                MovementType = request.MovementType,
+                Description = request.Description,
+                Currency = "BGN",
+                Status = "completed",
+                ReferenceNumber = Guid.NewGuid().ToString("N"),
+                MovementDateTime = DateTime.Now
+            };
+
+            _context.Movements.Add(movement);
+
+            var account = await _context.Accounts.FirstAsync(a => a.Id == accountId);
+
+            if (movement.MovementType == "deposit" || movement.MovementType == "transfer")
+                account.Balance += movement.Amount;
+            else
+                account.Balance -= movement.Amount;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(movement);
+        }
+
+        [HttpGet("account/{accountId:int}")]
+        public async Task<IActionResult> GetByAccount(int accountId)
+        {
+            var userId = GetUserId();
+
+            var hasAccess = await _context.UserAccounts
+                .AnyAsync(ua => ua.UserId == userId && ua.AccountId == accountId);
+
+            if (!hasAccess)
+                return Forbid();
+
+            var movements = await _context.Movements
+                .Where(m => m.AccountId == accountId)
                 .OrderByDescending(m => m.MovementDateTime)
                 .ToListAsync();
 

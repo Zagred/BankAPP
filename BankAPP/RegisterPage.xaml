@@ -5,40 +5,41 @@
              Title="Register">
 
     <ScrollView>
-        <VerticalStackLayout Padding="30" Spacing="20" VerticalOptions="Center">
+        <VerticalStackLayout Padding="30" Spacing="20">
 
-            <Label Text="BankAPP"
+            <Label Text="Create Account"
                    FontSize="34"
                    FontAttributes="Bold"
                    HorizontalOptions="Center" />
 
-            <Label Text="Create your account"
-                   FontSize="18"
-                   HorizontalOptions="Center"
-                   Opacity="0.8" />
-
             <Frame Padding="20" CornerRadius="18" BorderColor="LightGray">
                 <VerticalStackLayout Spacing="16">
 
-                    <Label Text="Register"
-                           FontSize="28"
-                           FontAttributes="Bold" />
+                    <Entry x:Name="NameEntry"
+                           Placeholder="Full name" />
 
                     <Entry x:Name="UsernameEntry"
-                           Placeholder="Username"
-                           ClearButtonVisibility="WhileEditing" />
+                           Placeholder="Username" />
+
+                    <Entry x:Name="EmailEntry"
+                           Placeholder="Email"
+                           Keyboard="Email" />
+
+                    <Entry x:Name="EgnEntry"
+                           Placeholder="EGN"
+                           Keyboard="Numeric"
+                           MaxLength="10" />
 
                     <Entry x:Name="PasswordEntry"
                            Placeholder="Password"
-                           IsPassword="True"
-                           ClearButtonVisibility="WhileEditing" />
+                           IsPassword="True" />
 
                     <Button Text="Create Account"
                             HeightRequest="50"
                             CornerRadius="12"
                             Clicked="OnRegisterClicked" />
 
-                    <Button Text="Back to login"
+                    <Button Text="Back to Login"
                             HeightRequest="45"
                             CornerRadius="12"
                             Clicked="OnGoToLoginClicked" />
