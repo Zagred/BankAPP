@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Json;
+﻿using BankAPP.Shared.DTOs;
+using System.Net.Http.Json;
 
 namespace BankAPP.Services
 {
@@ -18,12 +19,4 @@ namespace BankAPP.Services
         }
     }
 
-    public class AccountDto
-    {
-        public int Id { get; set; }
-        public string Iban { get; set; } = string.Empty;
-        public decimal Balance { get; set; }
-        public string Currency { get; set; } = string.Empty;
-        public string Role { get; set; } = string.Empty;
-    }
 }

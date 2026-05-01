@@ -1,4 +1,5 @@
 ﻿using BankAPP.Services;
+using BankAPP.Shared.DTOs;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BankAPP
@@ -8,28 +9,37 @@ namespace BankAPP
         private readonly MovementApiService _movementApiService;
         private readonly IServiceProvider _serviceProvider;
         private bool _isInitialized;
+        private readonly AccountApiService _accountApiService;
 
-        public MainPage(MovementApiService movementApiService, IServiceProvider serviceProvider)
+        public MainPage(
+    MovementApiService movementApiService,
+    AccountApiService accountApiService,
+    IServiceProvider serviceProvider)
         {
             InitializeComponent();
+
             _movementApiService = movementApiService;
+            _accountApiService = accountApiService;
             _serviceProvider = serviceProvider;
 
             FilterPicker.SelectedIndex = 0;
-            _isInitialized = true;
         }
-
+        private async Task<List<AccountDto>> LoadAccountsAsync()
+        {
+            return await _accountApiService.GetMyAccountsAsync();
+        }
         protected override async void OnAppearing()
         {
             base.OnAppearing();
-            WelcomeLabel.Text = $"Welcome, {SessionManager.CurrentUsername}!";
             await LoadDataAsync();
         }
-
         private async Task LoadDataAsync()
         {
             await LoadMovementsAsync();
             await LoadSummaryAsync();
+
+            var accounts = await _accountApiService.GetMyAccountsAsync();
+            AccountsCollection.ItemsSource = accounts;
         }
 
         private async Task LoadMovementsAsync()
@@ -43,13 +53,16 @@ namespace BankAPP
 
         private async Task LoadSummaryAsync()
         {
+            var accounts = await _accountApiService.GetMyAccountsAsync();
+
+            var totalBalance = accounts.Sum(a => a.Balance);
+
             var totalDebit = await _movementApiService.GetTotalDebitAsync();
             var totalCredit = await _movementApiService.GetTotalCreditAsync();
 
+            BalanceLabel.Text = totalBalance.ToString("F2");
             IncomeLabel.Text = totalCredit.ToString("F2");
             ExpenseLabel.Text = totalDebit.ToString("F2");
-
-            BalanceLabel.Text = (totalCredit - totalDebit).ToString("F2");
         }
 
         private async void OnRefreshClicked(object sender, EventArgs e)
@@ -83,5 +96,11 @@ namespace BankAPP
             var page = _serviceProvider.GetRequiredService<AddMovementPage>();
             await Navigation.PushAsync(page);
         }
+        private async void OnTransferClicked(object sender, EventArgs e)
+        {
+            var page = _serviceProvider.GetRequiredService<TransferPage>();
+            await Navigation.PushAsync(page);
+        }
+
     }
 }

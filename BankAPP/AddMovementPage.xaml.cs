@@ -1,5 +1,6 @@
 using BankAPP.Models;
 using BankAPP.Services;
+using BankAPP.Shared.DTOs;
 using BankAPP.Shared.Models;
 
 namespace BankAPP
@@ -16,30 +17,33 @@ namespace BankAPP
 
         private async void OnAddClicked(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(AmountEntry.Text) ||
-                !decimal.TryParse(AmountEntry.Text, out decimal amount))
+            if (!decimal.TryParse(AmountEntry.Text, out decimal amount))
             {
-                await DisplayAlert("Error", "Please enter a valid amount.", "OK");
+                await DisplayAlert("Error", "Invalid amount", "OK");
                 return;
             }
 
-            if (TypePicker.SelectedItem == null)
-            {
-                await DisplayAlert("Error", "Please select a movement type.", "OK");
-                return;
-            }
-
-            var movement = new Movement
+            var request = new CreateMovementRequest
             {
                 Amount = amount,
-                MovementType = TypePicker.SelectedItem.ToString() ?? "deposit",
-                Description = DescriptionEntry.Text ?? string.Empty,
-                Currency = "BGN",
-                ReferenceNumber = Guid.NewGuid().ToString()
+                MovementType = TypePicker.SelectedItem?.ToString() ?? "deposit",
+                Description = DescriptionEntry.Text ?? ""
             };
 
+            var success = await _movementApiService.AddMovementAsync(request);
 
-            await DisplayAlert("Success", "Movement added successfully.", "OK");
+            if (!success)
+            {
+                await DisplayAlert("Error", "Failed to add movement", "OK");
+                return;
+            }
+
+            await DisplayAlert("Success", "Movement added", "OK");
+
+            AmountEntry.Text = "";
+            DescriptionEntry.Text = "";
+            TypePicker.SelectedIndex = 0;
+
             await Navigation.PopAsync();
         }
     }

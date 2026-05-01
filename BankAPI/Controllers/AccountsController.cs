@@ -87,5 +87,16 @@ namespace BankAPI.Controllers
 
             return int.Parse(userIdClaim);
         }
+        [HttpGet("by-iban/{iban}")]
+        public async Task<IActionResult> GetByIban(string iban)
+        {
+            var account = await _context.Accounts
+                .FirstOrDefaultAsync(a => a.IBAN == iban);
+
+            if (account == null)
+                return NotFound();
+
+            return Ok(account);
+        }
     }
 }

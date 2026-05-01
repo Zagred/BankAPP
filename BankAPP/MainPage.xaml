@@ -7,6 +7,7 @@
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="18">
 
+            <!-- HEADER -->
             <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
                 <VerticalStackLayout Spacing="4">
                     <Label Text="Bank Dashboard"
@@ -27,6 +28,46 @@
                         Clicked="OnLogoutClicked" />
             </Grid>
 
+            <!-- ACCOUNTS -->
+            <Frame Padding="16" CornerRadius="18" BorderColor="LightGray">
+                <VerticalStackLayout Spacing="12">
+
+                    <Label Text="Accounts"
+                           FontSize="22"
+                           FontAttributes="Bold" />
+
+                    <CollectionView x:Name="AccountsCollection"
+                                    SelectionMode="None"
+                                    HeightRequest="160">
+
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Frame Padding="10" Margin="0,5" CornerRadius="14" BorderColor="LightGray">
+                                    <VerticalStackLayout Spacing="4">
+
+                                        <Label Text="{Binding Iban}"
+                                               FontAttributes="Bold"
+                                               FontSize="16" />
+
+                                        <Label Text="{Binding Balance, StringFormat='Balance: {0:F2}'}" />
+
+                                        <Label Text="{Binding Currency}"
+                                               Opacity="0.7" />
+
+                                        <Label Text="{Binding Role}"
+                                               Opacity="0.7" />
+
+                                    </VerticalStackLayout>
+                                </Frame>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+
+                    </CollectionView>
+
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- SUMMARY -->
             <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
 
                 <Frame Grid.Row="0" Grid.Column="0" Padding="16" CornerRadius="18" BorderColor="LightGray">
@@ -51,6 +92,7 @@
                 </Frame>
             </Grid>
 
+            <!-- ACTIONS -->
             <Frame Padding="16" CornerRadius="18" BorderColor="LightGray">
                 <VerticalStackLayout Spacing="12">
 
@@ -58,21 +100,27 @@
                            FontSize="22"
                            FontAttributes="Bold" />
 
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                        <Button Grid.Column="0"
-                                Text="Add Movement"
-                                CornerRadius="12"
-                                Clicked="OnAddMovementClicked" />
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+                        <Button Grid.Row="0" Grid.Column="0"
+            Text="Add Movement"
+            CornerRadius="12"
+            Clicked="OnAddMovementClicked" />
 
-                        <Button Grid.Column="1"
-                                Text="Refresh"
-                                CornerRadius="12"
-                                Clicked="OnRefreshClicked" />
+                        <Button Grid.Row="0" Grid.Column="1"
+            Text="Transfer"
+            CornerRadius="12"
+            Clicked="OnTransferClicked" />
+
+                        <Button Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+            Text="Refresh"
+            CornerRadius="12"
+            Clicked="OnRefreshClicked" />
                     </Grid>
 
                 </VerticalStackLayout>
             </Frame>
 
+            <!-- MOVEMENTS -->
             <Frame Padding="16" CornerRadius="18" BorderColor="LightGray">
                 <VerticalStackLayout Spacing="12">
 
@@ -97,14 +145,17 @@
 
                     <CollectionView x:Name="TransactionsCollection"
                                     SelectionMode="None">
+
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
                                 <Frame Padding="12" Margin="0,5" CornerRadius="14" BorderColor="LightGray">
                                     <VerticalStackLayout Spacing="6">
+
                                         <Grid ColumnDefinitions="*,Auto">
                                             <Label Text="{Binding MovementType}"
                                                    FontAttributes="Bold"
                                                    FontSize="18"/>
+
                                             <Label Grid.Column="1"
                                                    Text="{Binding Amount, StringFormat='{0:F2}'}"
                                                    FontSize="16"/>
@@ -116,10 +167,12 @@
                                         <Label Text="{Binding ReferenceNumber}" Opacity="0.8" />
                                         <Label Text="{Binding MovementDateTime, StringFormat='{0:dd.MM.yyyy HH:mm}'}"
                                                Opacity="0.8" />
+
                                     </VerticalStackLayout>
                                 </Frame>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
+
                     </CollectionView>
 
                 </VerticalStackLayout>
