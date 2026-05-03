@@ -11,20 +11,17 @@
                    FontSize="28"
                    FontAttributes="Bold" />
 
+            <Picker x:Name="AccountPicker"
+                    Title="Select account"
+                    ItemDisplayBinding="{Binding DisplayText}" />
+
             <Entry x:Name="AmountEntry"
                    Placeholder="Amount"
                    Keyboard="Numeric" />
 
             <Picker x:Name="TypePicker"
-                    Title="Select movement type">
-                <Picker.Items>
-                    <x:String>deposit</x:String>
-                    <x:String>transfer</x:String>
-                    <x:String>card_payment</x:String>
-                    <x:String>cash_withdrawal</x:String>
-                    <x:String>fee</x:String>
-                </Picker.Items>
-            </Picker>
+                    Title="Select movement type"
+                    ItemDisplayBinding="{Binding DisplayName}" />
 
             <Entry x:Name="DescriptionEntry"
                    Placeholder="Description" />

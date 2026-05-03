@@ -53,17 +53,19 @@ namespace BankAPI.Controllers
         {
             var userId = GetUserId();
 
-            var accountId = await _context.UserAccounts
-                .Where(ua => ua.UserId == userId)
-                .Select(ua => ua.AccountId)
-                .FirstOrDefaultAsync();
+            var hasAccess = await _context.UserAccounts
+                .AnyAsync(ua => ua.UserId == userId && ua.AccountId == request.AccountId);
 
-            if (accountId == 0)
-                return BadRequest(new { message = "User has no account" });
+            if (!hasAccess)
+                return Forbid("You don't have access to this account");
+
+            var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == request.AccountId);
+            if (account == null)
+                return BadRequest(new { message = "Account not found" });
 
             var movement = new Movement
             {
-                AccountId = accountId,
+                AccountId = request.AccountId,
                 Amount = request.Amount,
                 MovementType = request.MovementType,
                 Description = request.Description,
@@ -75,12 +77,14 @@ namespace BankAPI.Controllers
 
             _context.Movements.Add(movement);
 
-            var account = await _context.Accounts.FirstAsync(a => a.Id == accountId);
-
-            if (movement.MovementType == "deposit" || movement.MovementType == "transfer")
+            if (movement.MovementType == "deposit")
                 account.Balance += movement.Amount;
-            else
+            else if (movement.MovementType is "card_payment" or "cash_withdrawal" or "fee")
+            {
+                if (account.Balance < movement.Amount)
+                    return BadRequest(new { message = "Insufficient funds" });
                 account.Balance -= movement.Amount;
+            }
 
             await _context.SaveChangesAsync();
 

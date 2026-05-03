@@ -32,9 +32,19 @@
             <Frame Padding="16" CornerRadius="18" BorderColor="LightGray">
                 <VerticalStackLayout Spacing="12">
 
-                    <Label Text="Accounts"
-                           FontSize="22"
-                           FontAttributes="Bold" />
+                    <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                        <Label Text="Accounts"
+                               FontSize="22"
+                               FontAttributes="Bold" />
+
+                        <Button Grid.Column="1"
+                                Text="+ New"
+                                CornerRadius="12"
+                                HeightRequest="36"
+                                Padding="8"
+                                FontSize="12"
+                                Clicked="OnCreateAccountClicked" />
+                    </Grid>
 
                     <CollectionView x:Name="AccountsCollection"
                                     SelectionMode="None"
@@ -79,14 +89,14 @@
 
                 <Frame Grid.Row="0" Grid.Column="1" Padding="16" CornerRadius="18" BorderColor="LightGray">
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="Credit" FontAttributes="Bold" FontSize="16"/>
+                        <Label Text="Income" FontAttributes="Bold" FontSize="16"/>
                         <Label x:Name="IncomeLabel" Text="0.00" FontSize="24"/>
                     </VerticalStackLayout>
                 </Frame>
 
                 <Frame Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Padding="16" CornerRadius="18" BorderColor="LightGray">
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="Debit" FontAttributes="Bold" FontSize="16"/>
+                        <Label Text="Expense" FontAttributes="Bold" FontSize="16"/>
                         <Label x:Name="ExpenseLabel" Text="0.00" FontSize="24"/>
                     </VerticalStackLayout>
                 </Frame>
@@ -152,13 +162,31 @@
                                     <VerticalStackLayout Spacing="6">
 
                                         <Grid ColumnDefinitions="*,Auto">
-                                            <Label Text="{Binding MovementType}"
-                                                   FontAttributes="Bold"
-                                                   FontSize="18"/>
+                                            <VerticalStackLayout>
+                                                <Label Text="{Binding MovementTypeDisplay}"
+                                                       FontAttributes="Bold"
+                                                       FontSize="18"/>
+                                                <Label Text="{Binding Category}"
+                                                       FontSize="12"
+                                                       Opacity="0.7" />
+                                            </VerticalStackLayout>
 
                                             <Label Grid.Column="1"
-                                                   Text="{Binding Amount, StringFormat='{0:F2}'}"
-                                                   FontSize="16"/>
+                                                   Text="{Binding AmountText}"
+                                                   FontSize="16">
+                                                <Label.Triggers>
+                                                    <DataTrigger TargetType="Label"
+                                                                 Binding="{Binding IsExpense}"
+                                                                 Value="True">
+                                                        <Setter Property="TextColor" Value="Red" />
+                                                    </DataTrigger>
+                                                    <DataTrigger TargetType="Label"
+                                                                 Binding="{Binding IsExpense}"
+                                                                 Value="False">
+                                                        <Setter Property="TextColor" Value="Green" />
+                                                    </DataTrigger>
+                                                </Label.Triggers>
+                                            </Label>
                                         </Grid>
 
                                         <Label Text="{Binding Description}" />

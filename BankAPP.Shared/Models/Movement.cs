@@ -24,12 +24,34 @@ namespace BankAPP.Shared.Models
         [Column("movement_type")]
         public string MovementType { get; set; } = string.Empty;
 
+        [NotMapped]
+        public string MovementTypeDisplay => GetMovementTypeDisplay(MovementType);
+
+        [NotMapped]
+        public bool IsExpense => MovementType is "card_payment" or "cash_withdrawal" or "fee";
+
+        [NotMapped]
+        public string AmountText => (IsExpense ? "-" : "+") + Amount.ToString("F2");
+
+        [NotMapped]
+        public string Category => IsExpense ? "Expense" : "Income";
+
         [Required]
         [Column("status")]
         public string Status { get; set; } = "completed";
 
         [Column("description")]
         public string? Description { get; set; }
+
+        private static string GetMovementTypeDisplay(string movementType) => movementType switch
+        {
+            "deposit" => "Deposit",
+            "transfer" => "Transfer",
+            "card_payment" => "Card Payment",
+            "cash_withdrawal" => "Cash Withdrawal",
+            "fee" => "Fee",
+            _ => movementType
+        };
 
         [Required]
         [Column("reference_number")]

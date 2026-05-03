@@ -1,6 +1,5 @@
 using BankAPP.Services;
 using BankAPP.Shared.DTOs;
-using System.Net.Http.Json;
 
 namespace BankAPP
 {
@@ -40,7 +39,14 @@ namespace BankAPP
 
             if (string.IsNullOrWhiteSpace(ToIbanEntry.Text))
             {
-                await DisplayAlert("Error", "Please enter IBAN.", "OK");
+                await DisplayAlert("Error", "Please enter recipient IBAN.", "OK");
+                return;
+            }
+
+            var toIban = ToIbanEntry.Text.Trim();
+            if (string.Equals(toIban, selectedAccount.Iban, StringComparison.OrdinalIgnoreCase))
+            {
+                await DisplayAlert("Error", "Recipient IBAN cannot be the same as the source account.", "OK");
                 return;
             }
 
@@ -50,9 +56,14 @@ namespace BankAPP
                 return;
             }
 
-            var toAccountId = await GetAccountIdByIban(ToIbanEntry.Text);
+            if (selectedAccount.Balance < amount)
+            {
+                await DisplayAlert("Error", $"Insufficient funds. Available balance: {selectedAccount.Balance:F2}", "OK");
+                return;
+            }
 
-            if (toAccountId == null)
+            var toAccount = await _accountApiService.GetAccountByIbanAsync(toIban);
+            if (toAccount == null)
             {
                 await DisplayAlert("Error", "IBAN not found.", "OK");
                 return;
@@ -61,12 +72,12 @@ namespace BankAPP
             var request = new TransferRequest
             {
                 FromAccountId = selectedAccount.Id,
-                ToAccountId = toAccountId.Value,
+                ToAccountId = toAccount.Id,
                 Amount = amount,
-                Description = DescriptionEntry.Text ?? ""
+                Description = DescriptionEntry.Text?.Trim() ?? string.Empty
             };
-            var success = await _transferApiService.TransferAsync(request);
 
+            var success = await _transferApiService.TransferAsync(request);
             if (!success)
             {
                 await DisplayAlert("Error", "Transfer failed.", "OK");
@@ -75,21 +86,6 @@ namespace BankAPP
 
             await DisplayAlert("Success", "Transfer completed.", "OK");
             await Navigation.PopAsync();
-        }
-        private async Task<int?> GetAccountIdByIban(string iban)
-        {
-            var accounts = await _accountApiService.GetMyAccountsAsync();
-
-            // първо проверяваме дали е наш акаунт
-            var own = accounts.FirstOrDefault(a => a.Iban == iban);
-            if (own != null)
-                return own.Id;
-
-            // ако не е наш – викаме API
-            var client = new HttpClient();
-            var result = await client.GetFromJsonAsync<AccountDto>($"https://localhost:7083/api/accounts/by-iban/{iban}");
-
-            return result?.Id;
         }
     }
 }

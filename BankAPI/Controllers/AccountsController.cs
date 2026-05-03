@@ -78,6 +78,40 @@ namespace BankAPI.Controllers
                 account.Currency
             });
         }
+
+        [HttpPost("me")]
+        public async Task<IActionResult> CreateMyAccount()
+        {
+            var userId = GetUserId();
+
+            var account = new Account
+            {
+                IBAN = IbanGenerator.Generate(),
+                Balance = 0,
+                Currency = "BGN"
+            };
+
+            _context.Accounts.Add(account);
+            await _context.SaveChangesAsync();
+
+            var userAccount = new UserAccount
+            {
+                UserId = userId,
+                AccountId = account.Id,
+                Role = "owner"
+            };
+
+            _context.UserAccounts.Add(userAccount);
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                account.Id,
+                account.IBAN,
+                account.Balance,
+                account.Currency
+            });
+        }
         private int GetUserId()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

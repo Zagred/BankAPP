@@ -32,14 +32,17 @@ namespace BankAPP
         {
             base.OnAppearing();
             await LoadDataAsync();
+            _isInitialized = true;
         }
+
         private async Task LoadDataAsync()
         {
+            var accounts = await LoadAccountsAsync();
+            AccountsCollection.ItemsSource = accounts;
+            WelcomeLabel.Text = $"Hello, {SessionManager.CurrentUsername}!";
+
             await LoadMovementsAsync();
             await LoadSummaryAsync();
-
-            var accounts = await _accountApiService.GetMyAccountsAsync();
-            AccountsCollection.ItemsSource = accounts;
         }
 
         private async Task LoadMovementsAsync()
@@ -100,6 +103,23 @@ namespace BankAPP
         {
             var page = _serviceProvider.GetRequiredService<TransferPage>();
             await Navigation.PushAsync(page);
+        }
+
+        private async void OnCreateAccountClicked(object sender, EventArgs e)
+        {
+            bool confirm = await DisplayAlert("Create Account", "Create a new account?", "Yes", "No");
+            if (!confirm)
+                return;
+
+            var newAccount = await _accountApiService.CreateAccountAsync();
+            if (newAccount == null)
+            {
+                await DisplayAlert("Error", "Failed to create account", "OK");
+                return;
+            }
+
+            await DisplayAlert("Success", $"Account created: {newAccount.Iban}", "OK");
+            await LoadDataAsync();
         }
 
     }
