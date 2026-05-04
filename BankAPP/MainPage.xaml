@@ -77,66 +77,64 @@
                 </VerticalStackLayout>
             </Frame>
 
-            <!-- SUMMARY -->
-            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
+            <!-- DASHBOARD CARDS -->
+            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
 
-                <Frame Grid.Row="0" Grid.Column="0" Padding="16" CornerRadius="18" BorderColor="LightGray">
-                    <VerticalStackLayout Spacing="6">
-                        <Label Text="Balance" FontAttributes="Bold" FontSize="16"/>
-                        <Label x:Name="BalanceLabel" Text="0.00" FontSize="24"/>
+                <Frame Padding="16" CornerRadius="18" BorderColor="LightGray">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Accounts" FontAttributes="Bold" FontSize="18" />
+                        <Label Text="Total balance" Opacity="0.7" />
+                        <Label x:Name="BalanceLabel" Text="0.00" FontSize="28" FontAttributes="Bold" />
+                        <Label x:Name="AccountCountLabel" Text="0 accounts" Opacity="0.7" />
                     </VerticalStackLayout>
                 </Frame>
 
-                <Frame Grid.Row="0" Grid.Column="1" Padding="16" CornerRadius="18" BorderColor="LightGray">
-                    <VerticalStackLayout Spacing="6">
-                        <Label Text="Income" FontAttributes="Bold" FontSize="16"/>
-                        <Label x:Name="IncomeLabel" Text="0.00" FontSize="24"/>
+                <Frame Padding="16" CornerRadius="18" BorderColor="LightGray">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Transfers" FontAttributes="Bold" FontSize="18" />
+                        <Label x:Name="TransferCountLabel" Text="0 transfers" Opacity="0.7" />
+                        <Label x:Name="LastTransferLabel" Text="Last transfer: -" Opacity="0.7" />
+                        <Button Text="Transfer" CornerRadius="12" Clicked="OnTransferClicked" />
                     </VerticalStackLayout>
                 </Frame>
 
-                <Frame Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Padding="16" CornerRadius="18" BorderColor="LightGray">
-                    <VerticalStackLayout Spacing="6">
-                        <Label Text="Expense" FontAttributes="Bold" FontSize="16"/>
-                        <Label x:Name="ExpenseLabel" Text="0.00" FontSize="24"/>
+                <Frame Padding="16" CornerRadius="18" BorderColor="LightGray">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Payments" FontAttributes="Bold" FontSize="18" />
+                        <Label x:Name="PaymentsTotalLabel" Text="Spent: 0.00" Opacity="0.7" />
+                        <Label x:Name="IncomeLabel" Text="Income: 0.00" Opacity="0.7" />
+                        <Button Text="Add movement" CornerRadius="12" Clicked="OnAddMovementClicked" />
                     </VerticalStackLayout>
                 </Frame>
+
             </Grid>
 
-            <!-- ACTIONS -->
+            <!-- SPENDING CHART -->
             <Frame Padding="16" CornerRadius="18" BorderColor="LightGray">
                 <VerticalStackLayout Spacing="12">
-
-                    <Label Text="Quick Actions"
-                           FontSize="22"
-                           FontAttributes="Bold" />
-
-                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
-                        <Button Grid.Row="0" Grid.Column="0"
-            Text="Add Movement"
-            CornerRadius="12"
-            Clicked="OnAddMovementClicked" />
-
-                        <Button Grid.Row="0" Grid.Column="1"
-            Text="Transfer"
-            CornerRadius="12"
-            Clicked="OnTransferClicked" />
-
-                        <Button Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
-            Text="Refresh"
-            CornerRadius="12"
-            Clicked="OnRefreshClicked" />
-                    </Grid>
-
+                    <Label Text="Spending last 7 days" FontSize="22" FontAttributes="Bold" />
+                    <CollectionView x:Name="ChartCollectionView"
+                                    ItemsLayout="HorizontalList"
+                                    SelectionMode="None"
+                                    HeightRequest="170">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <VerticalStackLayout HorizontalOptions="Center" Spacing="8">
+                                    <BoxView HeightRequest="{Binding Height}" WidthRequest="24" Color="#4C8CFF" CornerRadius="12" />
+                                    <Label Text="{Binding DayLabel}" FontSize="12" HorizontalTextAlignment="Center" />
+                                    <Label Text="{Binding AmountText}" FontSize="12" HorizontalTextAlignment="Center" />
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
                 </VerticalStackLayout>
             </Frame>
 
-            <!-- MOVEMENTS -->
+            <!-- PAYMENTS -->
             <Frame Padding="16" CornerRadius="18" BorderColor="LightGray">
                 <VerticalStackLayout Spacing="12">
 
-                    <Label Text="Movements"
-                           FontSize="22"
-                           FontAttributes="Bold" />
+                    <Label Text="Payments" FontSize="22" FontAttributes="Bold" />
 
                     <Picker x:Name="FilterPicker"
                             Title="Filter by type"

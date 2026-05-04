@@ -1,5 +1,6 @@
 ﻿using BankAPP.Services;
 using BankAPP.Shared.DTOs;
+using BankAPP.Shared.Models;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BankAPP
@@ -41,32 +42,82 @@ namespace BankAPP
             AccountsCollection.ItemsSource = accounts;
             WelcomeLabel.Text = $"Hello, {SessionManager.CurrentUsername}!";
 
-            await LoadMovementsAsync();
-            await LoadSummaryAsync();
+            var movements = await LoadMovementsAsync();
+            await LoadSummaryAsync(accounts, movements);
+
+            ChartCollectionView.ItemsSource = BuildChartData(movements);
         }
 
-        private async Task LoadMovementsAsync()
+        private async Task<List<Movement>> LoadMovementsAsync()
         {
             string selectedFilter = FilterPicker?.SelectedItem?.ToString() ?? "all";
 
             var movements = await _movementApiService.GetMovementsByUserAndTypeAsync(selectedFilter);
 
             TransactionsCollection.ItemsSource = movements;
+            return movements;
         }
 
-        private async Task LoadSummaryAsync()
+        private async Task LoadSummaryAsync(List<AccountDto> accounts, List<Movement> movements)
         {
-            var accounts = await _accountApiService.GetMyAccountsAsync();
-
             var totalBalance = accounts.Sum(a => a.Balance);
-
-            var totalDebit = await _movementApiService.GetTotalDebitAsync();
-            var totalCredit = await _movementApiService.GetTotalCreditAsync();
+            var totalDebit = movements
+                .Where(m => m.MovementType == "card_payment" ||
+                            m.MovementType == "cash_withdrawal" ||
+                            m.MovementType == "fee")
+                .Sum(m => m.Amount);
+            var totalCredit = movements
+                .Where(m => m.MovementType == "deposit" ||
+                            m.MovementType == "transfer")
+                .Sum(m => m.Amount);
+            var transferCount = movements.Count(m => m.MovementType == "transfer");
+            var lastTransfer = movements
+                .Where(m => m.MovementType == "transfer")
+                .OrderByDescending(m => m.MovementDateTime)
+                .FirstOrDefault();
 
             BalanceLabel.Text = totalBalance.ToString("F2");
             IncomeLabel.Text = totalCredit.ToString("F2");
-            ExpenseLabel.Text = totalDebit.ToString("F2");
+            PaymentsTotalLabel.Text = $"Spent: {totalDebit:F2}";
+            AccountCountLabel.Text = $"{accounts.Count} account{(accounts.Count == 1 ? string.Empty : "s")}";
+            TransferCountLabel.Text = $"{transferCount} transfer{(transferCount == 1 ? string.Empty : "s")}";
+            LastTransferLabel.Text = lastTransfer != null
+                ? $"Last transfer: {lastTransfer.MovementDateTime:dd.MM}"
+                : "Last transfer: -";
+
+            await Task.CompletedTask;
         }
+
+        private static List<ChartBar> BuildChartData(List<Movement> movements)
+        {
+            var today = DateTime.Today;
+            var lastSevenDays = Enumerable.Range(0, 7)
+                .Select(i => today.AddDays(i - 6))
+                .Select(day => new
+                {
+                    Day = day,
+                    Amount = movements
+                        .Where(m => m.MovementType == "card_payment" ||
+                                    m.MovementType == "cash_withdrawal" ||
+                                    m.MovementType == "fee")
+                        .Where(m => m.MovementDateTime.Date == day.Date)
+                        .Sum(m => m.Amount)
+                })
+                .ToList();
+
+            var maxAmount = lastSevenDays.Max(x => x.Amount);
+            if (maxAmount <= 0) maxAmount = 1;
+
+            return lastSevenDays
+                .Select(x => new ChartBar(
+                    x.Day.ToString("dd"),
+                    (double)x.Amount,
+                    x.Amount > 0 ? x.Amount.ToString("F0") : "0",
+                    Math.Max(10, (double)x.Amount / (double)maxAmount * 130)))
+                .ToList();
+        }
+
+        private sealed record ChartBar(string DayLabel, double Amount, string AmountText, double Height);
 
         private async void OnRefreshClicked(object sender, EventArgs e)
         {

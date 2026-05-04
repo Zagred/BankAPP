@@ -6,9 +6,16 @@
     xmlns:local="clr-namespace:BankAPP"
     Title="BankAPP">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <TabBar>
+        <Tab Title="Accounts">
+            <ShellContent ContentTemplate="{DataTemplate local:AccountsPage}" />
+        </Tab>
+        <Tab Title="Transfers">
+            <ShellContent ContentTemplate="{DataTemplate local:TransfersPage}" />
+        </Tab>
+        <Tab Title="Payments">
+            <ShellContent ContentTemplate="{DataTemplate local:PaymentsPage}" />
+        </Tab>
+    </TabBar>
 
 </Shell>

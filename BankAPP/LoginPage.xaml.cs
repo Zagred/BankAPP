@@ -38,8 +38,8 @@ namespace BankAPP
             SessionManager.CurrentUsername = loginResponse.User.Username;
             SessionManager.Token = loginResponse.Token;
 
-            var mainPage = _serviceProvider.GetRequiredService<MainPage>();
-            await Navigation.PushAsync(mainPage);
+            var appShell = _serviceProvider.GetRequiredService<AppShell>();
+            Application.Current!.MainPage = appShell;
         }
 
         private async void OnGoToRegisterClicked(object sender, EventArgs e)

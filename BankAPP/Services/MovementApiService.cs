@@ -57,5 +57,10 @@ namespace BankAPP.Services
             var response = await _httpClient.PostAsJsonAsync("api/movements/me", request);
             return response.IsSuccessStatusCode;
         }
+
+        public async Task<List<Movement>> GetMovementsByUserAsync()
+        {
+            return await GetMyMovementsAsync();
+        }
     }
 }

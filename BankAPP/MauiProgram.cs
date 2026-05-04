@@ -38,6 +38,10 @@ namespace BankAPP
             builder.Services.AddTransient<AccountApiService>();
             builder.Services.AddTransient<TransferApiService>();
             builder.Services.AddTransient<TransferPage>();
+            builder.Services.AddTransient<AccountsPage>();
+            builder.Services.AddTransient<TransfersPage>();
+            builder.Services.AddTransient<PaymentsPage>();
+            builder.Services.AddTransient<AppShell>();
             return builder.Build();
         }
     }
