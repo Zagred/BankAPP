@@ -26,25 +26,6 @@ namespace BankAPP
 
         private async Task LoadDataAsync()
         {
-            var accounts = await _accountApiService.GetMyAccountsAsync();
-            AccountPicker.ItemsSource = accounts;
-
-            if (accounts.Count > 0)
-                AccountPicker.SelectedIndex = 0;
-
-            // Load movement types
-            var types = new List<MovementTypeItem>
-            {
-                new MovementTypeItem { Type = "card_payment", DisplayName = "Card Payment" },
-                new MovementTypeItem { Type = "cash_withdrawal", DisplayName = "Cash Withdrawal" },
-                new MovementTypeItem { Type = "deposit", DisplayName = "Deposit" },
-                new MovementTypeItem { Type = "fee", DisplayName = "Fee" }
-            };
-            TypePicker.ItemsSource = types;
-
-            if (types.Count > 0)
-                TypePicker.SelectedIndex = 0;
-
             await LoadPaymentsAsync();
             await LoadChartDataAsync();
         }
@@ -108,50 +89,6 @@ namespace BankAPP
             await LoadPaymentsAsync();
         }
 
-        private async void OnAddMovementClicked(object sender, EventArgs e)
-        {
-            if (AccountPicker.SelectedItem is not AccountDto selectedAccount)
-            {
-                await DisplayAlert("Error", "Please select an account.", "OK");
-                return;
-            }
-
-            if (!decimal.TryParse(AmountEntry.Text, out decimal amount) || amount <= 0)
-            {
-                await DisplayAlert("Error", "Invalid amount.", "OK");
-                return;
-            }
-
-            if (TypePicker.SelectedItem is not MovementTypeItem selectedType)
-            {
-                await DisplayAlert("Error", "Please select movement type.", "OK");
-                return;
-            }
-
-            var request = new CreateMovementRequest
-            {
-                AccountId = selectedAccount.Id,
-                Amount = amount,
-                MovementType = selectedType.Type,
-                Description = DescriptionEntry.Text?.Trim() ?? string.Empty
-            };
-
-            var success = await _movementApiService.AddMovementAsync(request);
-            if (!success)
-            {
-                await DisplayAlert("Error", "Failed to add movement.", "OK");
-                return;
-            }
-
-            await DisplayAlert("Success", "Movement added successfully.", "OK");
-
-            // Clear form
-            AmountEntry.Text = string.Empty;
-            DescriptionEntry.Text = string.Empty;
-
-            await LoadPaymentsAsync();
-            await LoadChartDataAsync();
-        }
     }
 
     public class MovementTypeItem

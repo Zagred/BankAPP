@@ -103,7 +103,7 @@
                         <Label Text="Payments" FontAttributes="Bold" FontSize="18" />
                         <Label x:Name="PaymentsTotalLabel" Text="Spent: 0.00" Opacity="0.7" />
                         <Label x:Name="IncomeLabel" Text="Income: 0.00" Opacity="0.7" />
-                        <Button Text="Add movement" CornerRadius="12" Clicked="OnAddMovementClicked" />
+                        <Button Text="Transfer" CornerRadius="12" Clicked="OnTransferClicked" />
                     </VerticalStackLayout>
                 </Frame>
 

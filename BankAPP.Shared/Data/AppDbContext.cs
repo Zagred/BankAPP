@@ -9,6 +9,9 @@ namespace BankAPP.Shared.Data
         public DbSet<Account> Accounts { get; set; }
         public DbSet<UserAccount> UserAccounts { get; set; }
         public DbSet<Movement> Movements { get; set; }
+        public DbSet<Card> Cards { get; set; }
+        public DbSet<Merchant> Merchants { get; set; }
+        public DbSet<Location> Locations { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options)
             : base(options)

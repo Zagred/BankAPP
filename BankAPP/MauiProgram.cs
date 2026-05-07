@@ -30,6 +30,7 @@ namespace BankAPP
 
             builder.Services.AddTransient<UserApiService>();
             builder.Services.AddTransient<MovementApiService>();
+            builder.Services.AddTransient<AdminApiService>();
             builder.Services.AddTransient<AuthMessageHandler>();
             builder.Services.AddTransient<LoginPage>();
             builder.Services.AddTransient<RegisterPage>();
@@ -41,6 +42,7 @@ namespace BankAPP
             builder.Services.AddTransient<AccountsPage>();
             builder.Services.AddTransient<TransfersPage>();
             builder.Services.AddTransient<PaymentsPage>();
+            builder.Services.AddTransient<AdminPage>();
             builder.Services.AddTransient<AppShell>();
             return builder.Build();
         }

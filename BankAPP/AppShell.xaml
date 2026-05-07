@@ -16,6 +16,9 @@
         <Tab Title="Payments">
             <ShellContent ContentTemplate="{DataTemplate local:PaymentsPage}" />
         </Tab>
+        <Tab Title="Admin">
+            <ShellContent ContentTemplate="{DataTemplate local:AdminPage}" />
+        </Tab>
     </TabBar>
 
 </Shell>

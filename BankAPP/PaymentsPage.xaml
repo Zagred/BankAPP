@@ -51,34 +51,13 @@
 
             </Grid>
 
-            <!-- ADD MOVEMENT -->
+            <!-- TRANSFER WARNING -->
             <Frame Padding="16" CornerRadius="18" BorderColor="LightGray">
                 <VerticalStackLayout Spacing="12">
-
-                    <Label Text="Add Movement"
+                    <Label Text="Transfers only"
                            FontSize="22"
                            FontAttributes="Bold" />
-
-                    <Picker x:Name="AccountPicker"
-                            Title="Select account"
-                            ItemDisplayBinding="{Binding DisplayText}" />
-
-                    <Entry x:Name="AmountEntry"
-                           Placeholder="Amount"
-                           Keyboard="Numeric" />
-
-                    <Picker x:Name="TypePicker"
-                            Title="Select movement type"
-                            ItemDisplayBinding="{Binding DisplayName}" />
-
-                    <Entry x:Name="DescriptionEntry"
-                           Placeholder="Description" />
-
-                    <Button Text="Add Movement"
-                            HeightRequest="50"
-                            CornerRadius="12"
-                            Clicked="OnAddMovementClicked" />
-
+                    <Label Text="Direct transaction creation is disabled for regular users. Use the Transfers page to submit transfer requests. Admin POS terminal actions are handled separately." />
                 </VerticalStackLayout>
             </Frame>
 

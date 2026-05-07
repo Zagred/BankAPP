@@ -62,5 +62,23 @@ namespace BankAPP.Services
         {
             return await GetMyMovementsAsync();
         }
+
+        public async Task<List<Movement>> GetPendingTransfersAsync()
+        {
+            var result = await _httpClient.GetFromJsonAsync<List<Movement>>("api/admin/pending-transfers");
+            return result ?? new List<Movement>();
+        }
+
+        public async Task<bool> ApproveTransferAsync(int movementId)
+        {
+            var response = await _httpClient.PostAsync($"api/admin/transfers/{movementId}/approve", null);
+            return response.IsSuccessStatusCode;
+        }
+
+        public async Task<bool> RejectTransferAsync(int movementId)
+        {
+            var response = await _httpClient.PostAsync($"api/admin/transfers/{movementId}/reject", null);
+            return response.IsSuccessStatusCode;
+        }
     }
 }

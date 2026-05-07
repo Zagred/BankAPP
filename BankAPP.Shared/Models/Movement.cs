@@ -8,10 +8,22 @@ namespace BankAPP.Shared.Models
     {
         [Key]
         [Column("movement_id")]
-        public int Id { get; set; }
+        public int MovementId { get; set; }
 
         [Column("account_id")]
         public int AccountId { get; set; }
+
+        [ForeignKey("AccountId")]
+        public Account? Account { get; set; }
+
+        [Column("card_id")]
+        public int? CardId { get; set; }
+
+        [Column("merchant_id")]
+        public int? MerchantId { get; set; }
+
+        [Column("location_id")]
+        public int? LocationId { get; set; }
 
         [Column("amount")]
         public decimal Amount { get; set; }

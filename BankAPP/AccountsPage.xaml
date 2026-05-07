@@ -111,12 +111,7 @@
                            FontAttributes="Bold" />
 
                     <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
-                        <Button Grid.Row="0" Grid.Column="0"
-            Text="Add Movement"
-            CornerRadius="12"
-            Clicked="OnAddMovementClicked" />
-
-                        <Button Grid.Row="0" Grid.Column="1"
+                        <Button Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
             Text="Transfer"
             CornerRadius="12"
             Clicked="OnTransferClicked" />

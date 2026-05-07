@@ -30,6 +30,11 @@ namespace BankAPI.Controllers
             return int.Parse(userIdClaim);
         }
 
+        private string GetUserName()
+        {
+            return User.FindFirst(ClaimTypes.Name)?.Value ?? User.Identity?.Name ?? string.Empty;
+        }
+
         [HttpGet("me")]
         public async Task<IActionResult> GetMyMovements()
         {
@@ -52,12 +57,11 @@ namespace BankAPI.Controllers
         public async Task<IActionResult> AddMyMovement(CreateMovementRequest request)
         {
             var userId = GetUserId();
+            var userName = GetUserName();
+            var isAdmin = string.Equals(userName, "admin", StringComparison.OrdinalIgnoreCase);
 
-            var hasAccess = await _context.UserAccounts
-                .AnyAsync(ua => ua.UserId == userId && ua.AccountId == request.AccountId);
-
-            if (!hasAccess)
-                return Forbid("You don't have access to this account");
+            if (!isAdmin)
+                return Forbid("Direct movement creation is only available for admin POS terminal. Regular users should use transfers.");
 
             var account = await _context.Accounts.FirstOrDefaultAsync(a => a.Id == request.AccountId);
             if (account == null)

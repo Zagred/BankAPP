@@ -1,4 +1,5 @@
-﻿using BankAPP.Shared.Data;
+﻿using System.Security.Claims;
+using BankAPP.Shared.Data;
 using BankAPP.Shared.DTOs;
 using BankAPP.Shared.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -19,11 +20,42 @@ namespace BankAPI.Controllers
             _context = context;
         }
 
+        private int GetUserId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null)
+                throw new UnauthorizedAccessException();
+            return int.Parse(userIdClaim);
+        }
+
+        private string GetUserName()
+        {
+            return User.FindFirst(ClaimTypes.Name)?.Value ?? User.Identity?.Name ?? string.Empty;
+        }
+
+        private bool IsAdmin()
+        {
+            return string.Equals(GetUserName(), "admin", StringComparison.OrdinalIgnoreCase);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Transfer(TransferRequest request)
         {
             if (request.Amount <= 0)
                 return BadRequest("Invalid amount");
+
+            if (request.FromAccountId == request.ToAccountId)
+                return BadRequest("Cannot transfer to the same account");
+
+            var userId = GetUserId();
+            if (!IsAdmin())
+            {
+                var hasAccess = await _context.UserAccounts
+                    .AnyAsync(ua => ua.UserId == userId && ua.AccountId == request.FromAccountId);
+
+                if (!hasAccess)
+                    return Forbid("You can only submit transfers from your own account");
+            }
 
             var fromAccount = await _context.Accounts
                 .FirstOrDefaultAsync(a => a.Id == request.FromAccountId);
@@ -41,9 +73,7 @@ namespace BankAPI.Controllers
 
             try
             {
-                // debit
-                fromAccount.Balance -= request.Amount;
-
+                // Create pending debit movement (not updating balance yet)
                 var debit = new Movement
                 {
                     AccountId = fromAccount.Id,
@@ -51,14 +81,12 @@ namespace BankAPI.Controllers
                     MovementType = "transfer",
                     Description = $"Transfer to account {toAccount.Id}: {request.Description}",
                     Currency = "BGN",
-                    Status = "completed",
+                    Status = "pending",  // Pending admin approval
                     ReferenceNumber = Guid.NewGuid().ToString("N"),
                     MovementDateTime = DateTime.Now
                 };
 
-                // credit
-                toAccount.Balance += request.Amount;
-
+                // Create pending credit movement
                 var credit = new Movement
                 {
                     AccountId = toAccount.Id,
@@ -66,8 +94,8 @@ namespace BankAPI.Controllers
                     MovementType = "transfer",
                     Description = $"Transfer from account {fromAccount.Id}: {request.Description}",
                     Currency = "BGN",
-                    Status = "completed",
-                    ReferenceNumber = Guid.NewGuid().ToString("N"),
+                    Status = "pending",  // Pending admin approval
+                    ReferenceNumber = debit.ReferenceNumber,  // Link debit and credit
                     MovementDateTime = DateTime.Now
                 };
 
@@ -76,7 +104,7 @@ namespace BankAPI.Controllers
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                return Ok(new { message = "Transfer successful" });
+                return Ok(new { message = "Transfer submitted for approval. Please wait for admin confirmation." });
             }
             catch
             {
