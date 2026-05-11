@@ -1,5 +1,7 @@
 using BankAPP.Services;
+using BankAPP.Shared.Constants;
 using BankAPP.Shared.DTOs;
+using BankAPP.Shared.Models;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BankAPP
@@ -22,11 +24,6 @@ namespace BankAPP
             _serviceProvider = serviceProvider;
         }
 
-        private async Task<List<AccountDto>> LoadAccountsAsync()
-        {
-            return await _accountApiService.GetMyAccountsAsync();
-        }
-
         protected override async void OnAppearing()
         {
             base.OnAppearing();
@@ -35,21 +32,19 @@ namespace BankAPP
 
         private async Task LoadDataAsync()
         {
-            var accounts = await LoadAccountsAsync();
+            var accounts = await _accountApiService.GetMyAccountsAsync();
+            var movements = await _movementApiService.GetMyMovementsAsync();
+
             AccountsCollection.ItemsSource = accounts;
             WelcomeLabel.Text = $"Hello, {SessionManager.CurrentUsername}!";
-
-            await LoadSummaryAsync();
+            LoadSummary(accounts, movements);
         }
 
-        private async Task LoadSummaryAsync()
+        private void LoadSummary(List<AccountDto> accounts, List<Movement> movements)
         {
-            var accounts = await _accountApiService.GetMyAccountsAsync();
-
             var totalBalance = accounts.Sum(a => a.Balance);
-
-            var totalDebit = await _movementApiService.GetTotalDebitAsync();
-            var totalCredit = await _movementApiService.GetTotalCreditAsync();
+            var totalDebit = movements.Where(m => MovementTypes.IsExpense(m.MovementType)).Sum(m => m.Amount);
+            var totalCredit = movements.Where(m => MovementTypes.IsIncome(m.MovementType)).Sum(m => m.Amount);
 
             BalanceLabel.Text = totalBalance.ToString("F2");
             IncomeLabel.Text = totalCredit.ToString("F2");

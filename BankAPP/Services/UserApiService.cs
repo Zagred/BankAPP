@@ -1,5 +1,4 @@
-﻿using BankAPP.Models.Api;
-using BankAPP.Shared.DTOs;
+﻿using BankAPP.Shared.DTOs;
 using System.Net.Http.Json;
 
 namespace BankAPP.Services

@@ -81,9 +81,9 @@ namespace BankAPI.Controllers
 
             _context.Movements.Add(movement);
 
-            if (movement.MovementType == "deposit")
+            if (movement.MovementType == BankAPP.Shared.Constants.MovementTypes.Deposit)
                 account.Balance += movement.Amount;
-            else if (movement.MovementType is "card_payment" or "cash_withdrawal" or "fee")
+            else if (BankAPP.Shared.Constants.MovementTypes.IsExpense(movement.MovementType))
             {
                 if (account.Balance < movement.Amount)
                     return BadRequest(new { message = "Insufficient funds" });

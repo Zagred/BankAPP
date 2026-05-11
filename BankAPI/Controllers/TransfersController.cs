@@ -78,7 +78,7 @@ namespace BankAPI.Controllers
                 {
                     AccountId = fromAccount.Id,
                     Amount = request.Amount,
-                    MovementType = "transfer",
+                    MovementType = BankAPP.Shared.Constants.MovementTypes.Transfer,
                     Description = $"Transfer to account {toAccount.Id}: {request.Description}",
                     Currency = "BGN",
                     Status = "pending",  // Pending admin approval
@@ -91,7 +91,7 @@ namespace BankAPI.Controllers
                 {
                     AccountId = toAccount.Id,
                     Amount = request.Amount,
-                    MovementType = "transfer",
+                    MovementType = BankAPP.Shared.Constants.MovementTypes.Transfer,
                     Description = $"Transfer from account {fromAccount.Id}: {request.Description}",
                     Currency = "BGN",
                     Status = "pending",  // Pending admin approval

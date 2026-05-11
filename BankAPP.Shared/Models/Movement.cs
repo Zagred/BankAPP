@@ -1,5 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using BankAPP.Shared.Constants;
 
 namespace BankAPP.Shared.Models
 {
@@ -37,10 +38,10 @@ namespace BankAPP.Shared.Models
         public string MovementType { get; set; } = string.Empty;
 
         [NotMapped]
-        public string MovementTypeDisplay => GetMovementTypeDisplay(MovementType);
+        public string MovementTypeDisplay => MovementTypes.GetDisplayName(MovementType);
 
         [NotMapped]
-        public bool IsExpense => MovementType is "card_payment" or "cash_withdrawal" or "fee";
+        public bool IsExpense => MovementTypes.IsExpense(MovementType);
 
         [NotMapped]
         public string AmountText => (IsExpense ? "-" : "+") + Amount.ToString("F2");
@@ -54,16 +55,6 @@ namespace BankAPP.Shared.Models
 
         [Column("description")]
         public string? Description { get; set; }
-
-        private static string GetMovementTypeDisplay(string movementType) => movementType switch
-        {
-            "deposit" => "Deposit",
-            "transfer" => "Transfer",
-            "card_payment" => "Card Payment",
-            "cash_withdrawal" => "Cash Withdrawal",
-            "fee" => "Fee",
-            _ => movementType
-        };
 
         [Required]
         [Column("reference_number")]

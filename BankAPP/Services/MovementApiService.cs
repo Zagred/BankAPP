@@ -1,5 +1,6 @@
-﻿using BankAPP.Shared.Models;
+using BankAPP.Shared.Constants;
 using BankAPP.Shared.DTOs;
+using BankAPP.Shared.Models;
 using System.Net.Http.Json;
 
 namespace BankAPP.Services
@@ -23,7 +24,7 @@ namespace BankAPP.Services
         {
             var movements = await GetMyMovementsAsync();
 
-            if (string.IsNullOrWhiteSpace(type) || type == "all")
+            if (string.IsNullOrWhiteSpace(type) || type == MovementTypes.All)
                 return movements;
 
             return movements
@@ -34,21 +35,16 @@ namespace BankAPP.Services
         public async Task<decimal> GetTotalDebitAsync()
         {
             var movements = await GetMyMovementsAsync();
-
             return movements
-                .Where(m => m.MovementType == "card_payment" ||
-                            m.MovementType == "cash_withdrawal" ||
-                            m.MovementType == "fee")
+                .Where(m => MovementTypes.IsExpense(m.MovementType))
                 .Sum(m => m.Amount);
         }
 
         public async Task<decimal> GetTotalCreditAsync()
         {
             var movements = await GetMyMovementsAsync();
-
             return movements
-                .Where(m => m.MovementType == "deposit" ||
-                            m.MovementType == "transfer")
+                .Where(m => MovementTypes.IsIncome(m.MovementType))
                 .Sum(m => m.Amount);
         }
 
@@ -61,24 +57,6 @@ namespace BankAPP.Services
         public async Task<List<Movement>> GetMovementsByUserAsync()
         {
             return await GetMyMovementsAsync();
-        }
-
-        public async Task<List<Movement>> GetPendingTransfersAsync()
-        {
-            var result = await _httpClient.GetFromJsonAsync<List<Movement>>("api/admin/pending-transfers");
-            return result ?? new List<Movement>();
-        }
-
-        public async Task<bool> ApproveTransferAsync(int movementId)
-        {
-            var response = await _httpClient.PostAsync($"api/admin/transfers/{movementId}/approve", null);
-            return response.IsSuccessStatusCode;
-        }
-
-        public async Task<bool> RejectTransferAsync(int movementId)
-        {
-            var response = await _httpClient.PostAsync($"api/admin/transfers/{movementId}/reject", null);
-            return response.IsSuccessStatusCode;
         }
     }
 }

@@ -23,14 +23,9 @@ namespace BankAPP
             await LoadPendingTransfersAsync();
         }
 
-        private bool IsAdminUser()
-        {
-            return string.Equals(SessionManager.CurrentUsername, "admin", StringComparison.OrdinalIgnoreCase);
-        }
-
         private async Task LoadAdminDashboardAsync()
         {
-            if (!IsAdminUser())
+            if (!SessionManager.IsAdmin)
             {
                 await DisplayAlert("Access denied", "This page is only available for the admin user.", "OK");
                 AccountsCollection.ItemsSource = new List<AdminAccountDto>();
@@ -162,7 +157,7 @@ namespace BankAPP
 
         private async void OnCreatePosPaymentClicked(object sender, EventArgs e)
         {
-            if (!IsAdminUser())
+            if (!SessionManager.IsAdmin)
             {
                 await DisplayAlert("Access denied", "Only admin can create POS payments.", "OK");
                 return;
@@ -211,7 +206,7 @@ namespace BankAPP
 
         private async Task LoadPendingTransfersAsync()
         {
-            if (!IsAdminUser())
+            if (!SessionManager.IsAdmin)
             {
                 PendingTransfersCollection.ItemsSource = new List<PendingTransferDto>();
                 return;

@@ -1,4 +1,5 @@
-﻿using BankAPP.Services;
+using BankAPP.Services;
+using BankAPP.Shared.Constants;
 using BankAPP.Shared.DTOs;
 using BankAPP.Shared.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,14 +9,14 @@ namespace BankAPP
     public partial class MainPage : ContentPage
     {
         private readonly MovementApiService _movementApiService;
+        private readonly AccountApiService _accountApiService;
         private readonly IServiceProvider _serviceProvider;
         private bool _isInitialized;
-        private readonly AccountApiService _accountApiService;
 
         public MainPage(
-    MovementApiService movementApiService,
-    AccountApiService accountApiService,
-    IServiceProvider serviceProvider)
+            MovementApiService movementApiService,
+            AccountApiService accountApiService,
+            IServiceProvider serviceProvider)
         {
             InitializeComponent();
 
@@ -25,10 +26,7 @@ namespace BankAPP
 
             FilterPicker.SelectedIndex = 0;
         }
-        private async Task<List<AccountDto>> LoadAccountsAsync()
-        {
-            return await _accountApiService.GetMyAccountsAsync();
-        }
+
         protected override async void OnAppearing()
         {
             base.OnAppearing();
@@ -38,41 +36,32 @@ namespace BankAPP
 
         private async Task LoadDataAsync()
         {
-            var accounts = await LoadAccountsAsync();
+            var accounts = await _accountApiService.GetMyAccountsAsync();
             AccountsCollection.ItemsSource = accounts;
             WelcomeLabel.Text = $"Hello, {SessionManager.CurrentUsername}!";
 
             var movements = await LoadMovementsAsync();
-            await LoadSummaryAsync(accounts, movements);
-
+            LoadSummary(accounts, movements);
             ChartCollectionView.ItemsSource = BuildChartData(movements);
         }
 
         private async Task<List<Movement>> LoadMovementsAsync()
         {
-            string selectedFilter = FilterPicker?.SelectedItem?.ToString() ?? "all";
-
+            string selectedFilter = FilterPicker?.SelectedItem?.ToString() ?? MovementTypes.All;
             var movements = await _movementApiService.GetMovementsByUserAndTypeAsync(selectedFilter);
 
             TransactionsCollection.ItemsSource = movements;
             return movements;
         }
 
-        private async Task LoadSummaryAsync(List<AccountDto> accounts, List<Movement> movements)
+        private void LoadSummary(List<AccountDto> accounts, List<Movement> movements)
         {
             var totalBalance = accounts.Sum(a => a.Balance);
-            var totalDebit = movements
-                .Where(m => m.MovementType == "card_payment" ||
-                            m.MovementType == "cash_withdrawal" ||
-                            m.MovementType == "fee")
-                .Sum(m => m.Amount);
-            var totalCredit = movements
-                .Where(m => m.MovementType == "deposit" ||
-                            m.MovementType == "transfer")
-                .Sum(m => m.Amount);
-            var transferCount = movements.Count(m => m.MovementType == "transfer");
+            var totalDebit = movements.Where(m => MovementTypes.IsExpense(m.MovementType)).Sum(m => m.Amount);
+            var totalCredit = movements.Where(m => MovementTypes.IsIncome(m.MovementType)).Sum(m => m.Amount);
+            var transferCount = movements.Count(m => m.MovementType == MovementTypes.Transfer);
             var lastTransfer = movements
-                .Where(m => m.MovementType == "transfer")
+                .Where(m => m.MovementType == MovementTypes.Transfer)
                 .OrderByDescending(m => m.MovementDateTime)
                 .FirstOrDefault();
 
@@ -84,8 +73,6 @@ namespace BankAPP
             LastTransferLabel.Text = lastTransfer != null
                 ? $"Last transfer: {lastTransfer.MovementDateTime:dd.MM}"
                 : "Last transfer: -";
-
-            await Task.CompletedTask;
         }
 
         private static List<ChartBar> BuildChartData(List<Movement> movements)
@@ -97,9 +84,7 @@ namespace BankAPP
                 {
                     Day = day,
                     Amount = movements
-                        .Where(m => m.MovementType == "card_payment" ||
-                                    m.MovementType == "cash_withdrawal" ||
-                                    m.MovementType == "fee")
+                        .Where(m => MovementTypes.IsExpense(m.MovementType))
                         .Where(m => m.MovementDateTime.Date == day.Date)
                         .Sum(m => m.Amount)
                 })
@@ -150,6 +135,7 @@ namespace BankAPP
             var page = _serviceProvider.GetRequiredService<AddMovementPage>();
             await Navigation.PushAsync(page);
         }
+
         private async void OnTransferClicked(object sender, EventArgs e)
         {
             var page = _serviceProvider.GetRequiredService<TransferPage>();
@@ -172,6 +158,5 @@ namespace BankAPP
             await DisplayAlert("Success", $"Account created: {newAccount.Iban}", "OK");
             await LoadDataAsync();
         }
-
     }
 }

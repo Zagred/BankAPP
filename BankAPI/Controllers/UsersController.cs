@@ -1,5 +1,4 @@
 ﻿using BankAPI.Helpers;
-using BankAPP.Models.Api;
 using BankAPP.Shared.Data;
 using BankAPP.Shared.DTOs;
 using BankAPP.Shared.Models;

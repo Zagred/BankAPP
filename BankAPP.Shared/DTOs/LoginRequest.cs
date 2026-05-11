@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BankAPP.Models.Api
+namespace BankAPP.Shared.DTOs
 {
     public class LoginRequest
     {

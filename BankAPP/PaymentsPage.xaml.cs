@@ -1,5 +1,5 @@
 using BankAPP.Services;
-using BankAPP.Shared.DTOs;
+using BankAPP.Shared.Constants;
 using BankAPP.Shared.Models;
 
 namespace BankAPP
@@ -7,15 +7,12 @@ namespace BankAPP
     public partial class PaymentsPage : ContentPage
     {
         private readonly MovementApiService _movementApiService;
-        private readonly AccountApiService _accountApiService;
+        private List<Movement> _allMovements = new();
 
-        public PaymentsPage(
-            MovementApiService movementApiService,
-            AccountApiService accountApiService)
+        public PaymentsPage(MovementApiService movementApiService)
         {
             InitializeComponent();
             _movementApiService = movementApiService;
-            _accountApiService = accountApiService;
         }
 
         protected override async void OnAppearing()
@@ -26,16 +23,16 @@ namespace BankAPP
 
         private async Task LoadDataAsync()
         {
-            await LoadPaymentsAsync();
-            await LoadChartDataAsync();
+            _allMovements = await _movementApiService.GetMyMovementsAsync();
+            LoadPayments(_allMovements);
+            ChartCollectionView.ItemsSource = BuildChartData(_allMovements);
         }
 
-        private async Task LoadPaymentsAsync()
+        private void LoadPayments(List<Movement> movements)
         {
-            var filter = FilterPicker.SelectedItem?.ToString() ?? "all";
-            var movements = await _movementApiService.GetMovementsByUserAsync();
+            var filter = FilterPicker.SelectedItem?.ToString() ?? MovementTypes.All;
 
-            if (filter != "all")
+            if (filter != MovementTypes.All)
             {
                 movements = movements.Where(m => m.MovementType == filter).ToList();
             }
@@ -47,13 +44,6 @@ namespace BankAPP
 
             TotalSpentLabel.Text = totalSpent.ToString("F2");
             TotalIncomeLabel.Text = totalIncome.ToString("F2");
-        }
-
-        private async Task LoadChartDataAsync()
-        {
-            var movements = await _movementApiService.GetMyMovementsAsync();
-            var chartData = BuildChartData(movements);
-            ChartCollectionView.ItemsSource = chartData;
         }
 
         private static List<ChartBar> BuildChartData(List<Movement> movements)
@@ -84,16 +74,9 @@ namespace BankAPP
 
         private sealed record ChartBar(string DayLabel, double Amount, string AmountText, double Height);
 
-        private async void OnFilterChanged(object sender, EventArgs e)
+        private void OnFilterChanged(object sender, EventArgs e)
         {
-            await LoadPaymentsAsync();
+            LoadPayments(_allMovements);
         }
-
-    }
-
-    public class MovementTypeItem
-    {
-        public string Type { get; set; } = string.Empty;
-        public string DisplayName { get; set; } = string.Empty;
     }
 }

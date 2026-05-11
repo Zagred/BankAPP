@@ -1,6 +1,5 @@
-﻿using BankAPP.Services;
+using BankAPP.Services;
 using Microsoft.Extensions.Logging;
-using System.Net.Sockets;
 
 namespace BankAPP
 {
@@ -26,7 +25,7 @@ namespace BankAPP
             {
                 client.BaseAddress = new Uri("https://localhost:7083/");
             })
- .AddHttpMessageHandler<AuthMessageHandler>();
+            .AddHttpMessageHandler<AuthMessageHandler>();
 
             builder.Services.AddTransient<UserApiService>();
             builder.Services.AddTransient<MovementApiService>();
@@ -44,6 +43,7 @@ namespace BankAPP
             builder.Services.AddTransient<PaymentsPage>();
             builder.Services.AddTransient<AdminPage>();
             builder.Services.AddTransient<AppShell>();
+
             return builder.Build();
         }
     }

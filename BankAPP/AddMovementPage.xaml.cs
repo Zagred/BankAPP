@@ -1,8 +1,6 @@
-using BankAPP.Models;
 using BankAPP.Services;
+using BankAPP.Shared.Constants;
 using BankAPP.Shared.DTOs;
-using BankAPP.Shared.Models;
-using System.Net.Http.Json;
 
 namespace BankAPP
 {
@@ -19,10 +17,10 @@ namespace BankAPP
 
             TypePicker.ItemsSource = new List<MovementTypeOption>
             {
-                new("Deposit", "deposit"),
-                new("Card payment", "card_payment"),
-                new("Cash withdrawal", "cash_withdrawal"),
-                new("Fee", "fee")
+                new("Deposit", MovementTypes.Deposit),
+                new("Card payment", MovementTypes.CardPayment),
+                new("Cash withdrawal", MovementTypes.CashWithdrawal),
+                new("Fee", MovementTypes.Fee)
             };
 
             TypePicker.SelectedIndex = 0;
@@ -52,9 +50,9 @@ namespace BankAPP
             }
 
             var selectedType = TypePicker.SelectedItem as MovementTypeOption;
-            var isExpense = selectedType?.Value is "card_payment" or "cash_withdrawal" or "fee";
+            var movementType = selectedType?.Value ?? MovementTypes.Deposit;
 
-            if (isExpense && selectedAccount.Balance < amount)
+            if (MovementTypes.IsExpense(movementType) && selectedAccount.Balance < amount)
             {
                 await DisplayAlert("Error", $"Insufficient funds. Available balance: {selectedAccount.Balance:F2}", "OK");
                 return;
@@ -64,7 +62,7 @@ namespace BankAPP
             {
                 AccountId = selectedAccount.Id,
                 Amount = amount,
-                MovementType = selectedType?.Value ?? "deposit",
+                MovementType = movementType,
                 Description = DescriptionEntry.Text ?? string.Empty
             };
 
