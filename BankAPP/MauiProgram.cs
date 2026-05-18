@@ -23,9 +23,17 @@ namespace BankAPP
 
             builder.Services.AddHttpClient("BankApi", client =>
             {
-                client.BaseAddress = new Uri("https://localhost:7083/");
-            })
-            .AddHttpMessageHandler<AuthMessageHandler>();
+                #if ANDROID
+                    client.BaseAddress = new Uri("https://10.0.2.2:7083/");
+                #else
+                                client.BaseAddress = new Uri("https://localhost:7083/");
+                #endif
+                            })
+                .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+                })
+                .AddHttpMessageHandler<AuthMessageHandler>();
 
             builder.Services.AddTransient<UserApiService>();
             builder.Services.AddTransient<MovementApiService>();

@@ -11,14 +11,25 @@ namespace BankAPP
         public LoginPage(UserApiService userApiService, IServiceProvider serviceProvider)
         {
             InitializeComponent();
+            NavigationPage.SetHasNavigationBar(this, false);
             _userApiService = userApiService;
             _serviceProvider = serviceProvider;
         }
 
+        private string GetUsername() =>
+            !string.IsNullOrEmpty(UsernameEntry?.Text)
+                ? UsernameEntry.Text
+                : UsernameEntryMobile?.Text ?? string.Empty;
+
+        private string GetPassword() =>
+            !string.IsNullOrEmpty(PasswordEntry?.Text)
+                ? PasswordEntry.Text
+                : PasswordEntryMobile?.Text ?? string.Empty;
+
         private async void OnLoginClicked(object sender, EventArgs e)
         {
-            var username = UsernameEntry.Text;
-            var password = PasswordEntry.Text;
+            var username = GetUsername();
+            var password = GetPassword();
 
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
             {
