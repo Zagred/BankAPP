@@ -25,6 +25,10 @@ namespace BankAPP
             {
                 client.BaseAddress = ApiConfiguration.BaseAddress;
             })
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            })
             .AddHttpMessageHandler<AuthMessageHandler>();
 
             builder.Services.AddTransient<UserApiService>();

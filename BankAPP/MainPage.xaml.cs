@@ -13,16 +13,19 @@ namespace BankAPP
         private readonly IServiceProvider _serviceProvider;
         private bool _isInitialized;
         private readonly AssistantApiService _assistantApiService;
+
         public MainPage(
-     MovementApiService movementApiService,
-     AccountApiService accountApiService,
-     AssistantApiService assistantApiService)
+            MovementApiService movementApiService,
+            AccountApiService accountApiService,
+            AssistantApiService assistantApiService,
+            IServiceProvider serviceProvider)
         {
             InitializeComponent();
 
             _movementApiService = movementApiService;
             _accountApiService = accountApiService;
             _assistantApiService = assistantApiService;
+            _serviceProvider = serviceProvider;
         }
 
         protected override async void OnAppearing()
