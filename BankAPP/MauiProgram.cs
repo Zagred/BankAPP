@@ -23,7 +23,7 @@ namespace BankAPP
 
             builder.Services.AddHttpClient("BankApi", client =>
             {
-                client.BaseAddress = new Uri("https://localhost:7083/");
+                client.BaseAddress = ApiConfiguration.BaseAddress;
             })
             .AddHttpMessageHandler<AuthMessageHandler>();
 
@@ -43,6 +43,7 @@ namespace BankAPP
             builder.Services.AddTransient<PaymentsPage>();
             builder.Services.AddTransient<AdminPage>();
             builder.Services.AddTransient<AppShell>();
+            builder.Services.AddSingleton<AssistantApiService>();
 
             return builder.Build();
         }

@@ -12,19 +12,17 @@ namespace BankAPP
         private readonly AccountApiService _accountApiService;
         private readonly IServiceProvider _serviceProvider;
         private bool _isInitialized;
-
+        private readonly AssistantApiService _assistantApiService;
         public MainPage(
-            MovementApiService movementApiService,
-            AccountApiService accountApiService,
-            IServiceProvider serviceProvider)
+     MovementApiService movementApiService,
+     AccountApiService accountApiService,
+     AssistantApiService assistantApiService)
         {
             InitializeComponent();
 
             _movementApiService = movementApiService;
             _accountApiService = accountApiService;
-            _serviceProvider = serviceProvider;
-
-            FilterPicker.SelectedIndex = 0;
+            _assistantApiService = assistantApiService;
         }
 
         protected override async void OnAppearing()
@@ -157,6 +155,12 @@ namespace BankAPP
 
             await DisplayAlert("Success", $"Account created: {newAccount.Iban}", "OK");
             await LoadDataAsync();
+        }
+        private async void OnAiAdviceClicked(object sender, EventArgs e)
+        {
+            var advice = await _assistantApiService.GetAdviceAsync();
+
+            await DisplayAlert("AI Financial Assistant", advice, "OK");
         }
     }
 }
