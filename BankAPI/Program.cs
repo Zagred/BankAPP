@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using BankAPI.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -89,6 +90,10 @@ builder.Services.AddHttpClient<OllamaAdviceService>(client =>
 {
     client.BaseAddress = new Uri("http://localhost:11434/");
 });
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("EmailSettings"));
+
+builder.Services.AddScoped<EmailService>();
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())

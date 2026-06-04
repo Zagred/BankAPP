@@ -9,14 +9,18 @@ namespace BankAPP
         private readonly MovementApiService _movementApiService;
         private List<Movement> _allMovements = new();
         private readonly AssistantApiService _assistantApiService;
+        private readonly BudgetReportApiService _budgetReportApiService;
+
         public PaymentsPage(
             MovementApiService movementApiService,
-            AssistantApiService assistantApiService)
+            AssistantApiService assistantApiService,
+            BudgetReportApiService budgetReportApiService)
         {
             InitializeComponent();
 
             _movementApiService = movementApiService;
             _assistantApiService = assistantApiService;
+            _budgetReportApiService = budgetReportApiService;
         }
         protected override async void OnAppearing()
         {
@@ -85,7 +89,14 @@ namespace BankAPP
         {
             var advice = await _assistantApiService.GetAdviceAsync();
 
-            await DisplayAlert("AI Financial Assistant", advice, "OK");
+            await DisplayAlertAsync("AI Financial Assistant", advice, "OK");
+        }
+
+        private async void OnEmailReportClicked(object sender, EventArgs e)
+        {
+            var message = await _budgetReportApiService.SendMonthlyReportAsync();
+
+            await DisplayAlertAsync("Monthly Report", message, "OK");
         }
     }
 }
