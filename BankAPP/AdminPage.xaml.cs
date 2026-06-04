@@ -13,6 +13,7 @@ namespace BankAPP
         public AdminPage(AdminApiService adminApiService)
         {
             InitializeComponent();
+            NavigationPage.SetHasNavigationBar(this, false);
             _adminApiService = adminApiService;
         }
 
@@ -51,8 +52,19 @@ namespace BankAPP
             UpdateAccountSelection();
 
             MerchantPicker.ItemsSource = await _adminApiService.GetMerchantsAsync();
-            MerchantPicker.SelectedIndex = MerchantPicker.ItemsSource is System.Collections.ICollection merchantCollection && merchantCollection.Count > 0 ? 0 : -1;
+            MerchantPicker.SelectedIndex = MerchantPicker.ItemsSource is System.Collections.ICollection merchantCollection
+                && merchantCollection.Count > 0 ? 0 : -1;
             await LoadLocationsAsync();
+            await UpdateStats();
+        }
+
+        private async Task UpdateStats()
+        {
+            try { UserCountLabel.Text = _allAccounts.Select(a => a.Username).Distinct().Count().ToString(); } catch { }
+            try { AccountCountLabel.Text = _allAccounts.Count.ToString(); } catch { }
+            var pending = await _adminApiService.GetPendingTransfersAsync();
+            try { PendingCountLabel.Text = pending.Count.ToString(); } catch { }
+            try { PendingBadgeLabel.Text = pending.Count.ToString(); } catch { }
         }
 
         private async Task LoadLocationsAsync()
@@ -64,7 +76,8 @@ namespace BankAPP
             }
 
             LocationPicker.ItemsSource = await _adminApiService.GetLocationsByMerchantAsync(merchant.MerchantId);
-            LocationPicker.SelectedIndex = LocationPicker.ItemsSource is System.Collections.ICollection locationCollection && locationCollection.Count > 0 ? 0 : -1;
+            LocationPicker.SelectedIndex = LocationPicker.ItemsSource is System.Collections.ICollection locationCollection
+                && locationCollection.Count > 0 ? 0 : -1;
         }
 
         private void UpdateAccountSelection()
@@ -72,7 +85,7 @@ namespace BankAPP
             if (UserPicker.SelectedItem is not string chosenUser)
             {
                 AccountPicker.ItemsSource = new List<AdminAccountDto>();
-                SelectedAccountBalanceLabel.Text = "Balance:";
+                SelectedAccountBalanceLabel.Text = "Баланс: —";
                 CardPicker.ItemsSource = new List<AdminCardDto>();
                 return;
             }
@@ -91,13 +104,9 @@ namespace BankAPP
         private void UpdateSelectedAccountBalance()
         {
             if (AccountPicker.SelectedItem is AdminAccountDto account)
-            {
-                SelectedAccountBalanceLabel.Text = $"Balance: {account.Balance:F2} {account.Currency}";
-            }
+                SelectedAccountBalanceLabel.Text = $"Баланс: {account.Balance:F2} {account.Currency}";
             else
-            {
-                SelectedAccountBalanceLabel.Text = "Balance:";
-            }
+                SelectedAccountBalanceLabel.Text = "Баланс: —";
         }
 
         private void UpdateCardSelection()
@@ -118,10 +127,7 @@ namespace BankAPP
             CardPicker.SelectedIndex = cards.Count > 0 ? 0 : -1;
         }
 
-        private void OnUserChanged(object sender, EventArgs e)
-        {
-            UpdateAccountSelection();
-        }
+        private void OnUserChanged(object sender, EventArgs e) => UpdateAccountSelection();
 
         private void OnAccountChanged(object sender, EventArgs e)
         {
@@ -139,21 +145,17 @@ namespace BankAPP
 
             var createCardPage = new CreateCardPage(_adminApiService);
             createCardPage.InitializeForAccount(account);
-            
-            // Hook up event to reload cards after creation
+
             createCardPage.CardCreated += async () =>
             {
                 _allCards = await _adminApiService.GetUserCardsAsync();
                 UpdateCardSelection();
             };
-            
+
             await Navigation.PushAsync(createCardPage);
         }
 
-        private async void OnMerchantChanged(object sender, EventArgs e)
-        {
-            await LoadLocationsAsync();
-        }
+        private async void OnMerchantChanged(object sender, EventArgs e) => await LoadLocationsAsync();
 
         private async void OnCreatePosPaymentClicked(object sender, EventArgs e)
         {
@@ -192,7 +194,7 @@ namespace BankAPP
             if (success)
             {
                 StatusLabel.TextColor = Microsoft.Maui.Graphics.Colors.Green;
-                StatusLabel.Text = "POS transaction created successfully.";
+                StatusLabel.Text = "POS транзакцията е създадена успешно.";
                 AmountEntry.Text = string.Empty;
                 await Task.Delay(2000);
                 await LoadAdminDashboardAsync();
@@ -200,7 +202,7 @@ namespace BankAPP
             else
             {
                 StatusLabel.TextColor = Microsoft.Maui.Graphics.Colors.Red;
-                StatusLabel.Text = $"Failed: {errorMessage}";
+                StatusLabel.Text = $"Грешка: {errorMessage}";
             }
         }
 
@@ -212,7 +214,10 @@ namespace BankAPP
                 return;
             }
 
-            PendingTransfersCollection.ItemsSource = await _adminApiService.GetPendingTransfersAsync();
+            var pending = await _adminApiService.GetPendingTransfersAsync();
+            PendingTransfersCollection.ItemsSource = pending;
+            try { PendingCountLabel.Text = pending.Count.ToString(); } catch { }
+            try { PendingBadgeLabel.Text = pending.Count.ToString(); } catch { }
         }
 
         private async void OnApproveTransferClicked(object sender, EventArgs e)
@@ -223,12 +228,12 @@ namespace BankAPP
             var success = await _adminApiService.ApproveTransferAsync(movementId);
             if (success)
             {
-                await DisplayAlert("Success", "Transfer approved successfully.", "OK");
+                await DisplayAlert("Успех", "Преводът е одобрен.", "OK");
                 await LoadPendingTransfersAsync();
             }
             else
             {
-                await DisplayAlert("Error", "Failed to approve transfer.", "OK");
+                await DisplayAlert("Грешка", "Неуспешно одобрение.", "OK");
             }
         }
 
@@ -240,13 +245,31 @@ namespace BankAPP
             var success = await _adminApiService.RejectTransferAsync(movementId);
             if (success)
             {
-                await DisplayAlert("Success", "Transfer rejected successfully.", "OK");
+                await DisplayAlert("Успех", "Преводът е отказан.", "OK");
                 await LoadPendingTransfersAsync();
             }
             else
             {
-                await DisplayAlert("Error", "Failed to reject transfer.", "OK");
+                await DisplayAlert("Грешка", "Неуспешно отказване.", "OK");
             }
+        }
+
+        private void OnNavigateToAccounts(object sender, EventArgs e) =>
+            ((AppShell)Shell.Current).NavigateTo("Accounts");
+
+        private void OnNavigateToTransfers(object sender, EventArgs e) =>
+            ((AppShell)Shell.Current).NavigateTo("Transfers");
+
+        private void OnNavigateToPayments(object sender, EventArgs e) =>
+            ((AppShell)Shell.Current).NavigateTo("Payments");
+
+        private async void OnLogoutClicked(object sender, EventArgs e)
+        {
+            bool confirm = await DisplayAlert("Logout", "Do you want to log out?", "Yes", "No");
+            if (!confirm) return;
+            SessionManager.Logout();
+            var loginPage = IPlatformApplication.Current!.Services.GetService<LoginPage>()!;
+            Application.Current!.MainPage = new NavigationPage(loginPage);
         }
     }
 }
