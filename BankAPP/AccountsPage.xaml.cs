@@ -27,7 +27,27 @@ namespace BankAPP
         protected override async void OnAppearing()
         {
             base.OnAppearing();
+            UpdateAdminNavigation();
             await LoadDataAsync();
+        }
+
+        private void UpdateAdminNavigation()
+        {
+            var isAdmin = SessionManager.IsAdmin;
+
+            try { SidebarAdminButton.IsVisible = isAdmin; } catch { }
+            try
+            {
+                MobileNavAdminItem.IsVisible = isAdmin;
+                MobileNavGrid.ColumnDefinitions.Clear();
+
+                for (var i = 0; i < (isAdmin ? 5 : 4); i++)
+                    MobileNavGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Star });
+
+                Grid.SetColumn(MobileNavLogoutItem, isAdmin ? 4 : 3);
+                Grid.SetColumnSpan(MobileNavSeparator, isAdmin ? 5 : 4);
+            }
+            catch { }
         }
 
         private async Task LoadDataAsync()
@@ -54,8 +74,11 @@ namespace BankAPP
         private void UpdateSummary(List<AccountDto> accounts, List<Movement> movements)
         {
             var totalBalance = accounts.Sum(a => a.Balance);
-            var totalDebit = movements.Where(m => MovementTypes.IsExpense(m.MovementType)).Sum(m => m.Amount);
-            var totalCredit = movements.Where(m => MovementTypes.IsIncome(m.MovementType)).Sum(m => m.Amount);
+            var completedMovements = movements
+                .Where(m => string.Equals(m.Status, "completed", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            var totalDebit = completedMovements.Where(m => m.IsExpense).Sum(m => m.Amount);
+            var totalCredit = completedMovements.Where(m => m.IsIncome).Sum(m => m.Amount);
 
             try { BalanceLabel.Text = totalBalance.ToString("F2"); } catch { }
             try { BalanceLabelM.Text = totalBalance.ToString("F2"); } catch { }
@@ -116,6 +139,11 @@ namespace BankAPP
         private void OnNavigateToPayments(object sender, EventArgs e)
         {
             ((AppShell)Shell.Current).NavigateTo("Payments");
+        }
+
+        private void OnNavigateToAdmin(object sender, EventArgs e)
+        {
+            ((AppShell)Shell.Current).NavigateTo("Admin");
         }
     }
 }

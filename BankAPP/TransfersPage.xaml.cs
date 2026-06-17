@@ -1,6 +1,7 @@
 using BankAPP.Services;
 using BankAPP.Shared.DTOs;
 using BankAPP.Shared.Models;
+using BankAPP.Shared.Utilities;
 
 namespace BankAPP
 {
@@ -28,7 +29,27 @@ namespace BankAPP
         protected override async void OnAppearing()
         {
             base.OnAppearing();
+            UpdateAdminNavigation();
             await LoadDataAsync();
+        }
+
+        private void UpdateAdminNavigation()
+        {
+            var isAdmin = SessionManager.IsAdmin;
+
+            try { SidebarAdminButton.IsVisible = isAdmin; } catch { }
+            try
+            {
+                MobileNavAdminItem.IsVisible = isAdmin;
+                MobileNavGrid.ColumnDefinitions.Clear();
+
+                for (var i = 0; i < (isAdmin ? 5 : 4); i++)
+                    MobileNavGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Star });
+
+                Grid.SetColumn(MobileNavLogoutItem, isAdmin ? 4 : 3);
+                Grid.SetColumnSpan(MobileNavSeparator, isAdmin ? 5 : 4);
+            }
+            catch { }
         }
 
         private async Task LoadDataAsync()
@@ -71,8 +92,8 @@ namespace BankAPP
                 return;
             }
 
-            var toIban = toIbanText.Trim();
-            if (string.Equals(toIban, selectedAccount.Iban, StringComparison.OrdinalIgnoreCase))
+            var toIban = BankInputNormalizer.NormalizeIban(toIbanText);
+            if (string.Equals(toIban, BankInputNormalizer.NormalizeIban(selectedAccount.Iban), StringComparison.OrdinalIgnoreCase))
             {
                 await DisplayAlert("Error", "Recipient IBAN cannot be the same as the source account.", "OK");
                 return;
@@ -83,7 +104,7 @@ namespace BankAPP
             if (string.IsNullOrWhiteSpace(amountText))
                 try { amountText = AmountEntryM.Text; } catch { }
 
-            if (!decimal.TryParse(amountText, out decimal amount) || amount <= 0)
+            if (!BankInputNormalizer.TryParseAmount(amountText, out decimal amount) || amount <= 0)
             {
                 await DisplayAlert("Error", "Invalid amount.", "OK");
                 return;
@@ -115,14 +136,14 @@ namespace BankAPP
                 Description = descText?.Trim() ?? string.Empty
             };
 
-            var success = await _transferApiService.TransferAsync(request);
+            var (success, errorMessage) = await _transferApiService.TransferAsync(request);
             if (!success)
             {
-                await DisplayAlert("Error", "Transfer failed.", "OK");
+                await DisplayAlert("Error", BankInputNormalizer.ToDisplayError(errorMessage), "OK");
                 return;
             }
 
-            await DisplayAlert("Success", "Transfer completed.", "OK");
+            await DisplayAlert("Success", "Transfer submitted for admin approval.", "OK");
 
             try { ToIbanEntry.Text = string.Empty; AmountEntry.Text = string.Empty; DescriptionEntry.Text = string.Empty; } catch { }
             try { ToIbanEntryM.Text = string.Empty; AmountEntryM.Text = string.Empty; DescriptionEntryM.Text = string.Empty; } catch { }
@@ -135,6 +156,9 @@ namespace BankAPP
 
         private void OnNavigateToPayments(object sender, EventArgs e) =>
             ((AppShell)Shell.Current).NavigateTo("Payments");
+
+        private void OnNavigateToAdmin(object sender, EventArgs e) =>
+            ((AppShell)Shell.Current).NavigateTo("Admin");
 
         private async void OnLogoutClicked(object sender, EventArgs e)
         {

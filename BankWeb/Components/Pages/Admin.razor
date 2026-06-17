@@ -1,6 +1,7 @@
 @page "/admin"
 @inject ApiAuthService AuthService
 @inject AdminApiService AdminService
+@using BankAPP.Shared.Utilities
 
 <PageTitle>Административен панел — BankApp</PageTitle>
 
@@ -204,6 +205,83 @@ else
                 </button>
             </div>
 
+            <!-- Add funds -->
+            <div class="ucb-card">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+                    <div style="width:32px;height:32px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                             stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                    </div>
+                    <div style="font-size:14px;font-weight:700;color:var(--text-primary);">Add money to user</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="field-label">AMOUNT (BGN)</label>
+                    <input class="ucb-input" type="number" step="0.01" placeholder="0,00" @bind="fundAmount" />
+                </div>
+
+                <div class="form-group">
+                    <label class="field-label">DESCRIPTION</label>
+                    <input class="ucb-input" placeholder="Admin deposit" @bind="fundDescription" />
+                </div>
+
+                <button class="btn-ucb-navy" style="width:100%;" @onclick="AddFundsAsync">
+                    Add money to selected account
+                </button>
+            </div>
+
+            <!-- Transfer between accounts -->
+            <div class="ucb-card">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+                    <div style="width:32px;height:32px;background:var(--navy);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                             stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="4" x2="12" y2="20" />
+                            <polyline points="4 12 12 4 20 12" />
+                            <line x1="20" y1="4" x2="20" y2="20" />
+                        </svg>
+                    </div>
+                    <div style="font-size:14px;font-weight:700;color:var(--text-primary);">Transfer between accounts</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="field-label">FROM ACCOUNT</label>
+                    <select class="ucb-select" @bind="transferFromAccountId" @bind:after="UpdateTransferSelection">
+                        @foreach (var account in accounts)
+                        {
+                            <option value="@account.AccountId">@account.Username - @account.Iban (@account.Balance.ToString("F2") @account.Currency)</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="field-label">TO ACCOUNT</label>
+                    <select class="ucb-select" @bind="transferToAccountId">
+                        @foreach (var account in accounts)
+                        {
+                            <option value="@account.AccountId">@account.Username - @account.Iban (@account.Balance.ToString("F2") @account.Currency)</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="field-label">AMOUNT (BGN)</label>
+                    <input class="ucb-input" type="number" step="0.01" placeholder="0,00" @bind="transferAmount" />
+                </div>
+
+                <div class="form-group">
+                    <label class="field-label">DESCRIPTION</label>
+                    <input class="ucb-input" placeholder="Admin account transfer" @bind="transferDescription" />
+                </div>
+
+                <button class="btn-ucb-navy" style="width:100%;" @onclick="TransferBetweenAccountsAsync">
+                    Transfer money
+                </button>
+            </div>
+
             <!-- POS transaction -->
             <div class="ucb-card">
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
@@ -278,6 +356,12 @@ else
     private int selectedMerchantId;
     private int selectedLocationId;
     private string cardType = "Debit";
+    private decimal fundAmount;
+    private string fundDescription = "";
+    private int transferFromAccountId;
+    private int transferToAccountId;
+    private decimal transferAmount;
+    private string transferDescription = "";
     private decimal posAmount;
     private string message = "";
     private string messageClass = "alert-success";
@@ -301,6 +385,7 @@ else
             selectedUser = users[0];
 
         UpdateAccountSelection();
+        UpdateTransferSelection();
 
         if (selectedMerchantId == 0 && merchants.Count > 0)
             selectedMerchantId = merchants[0].MerchantId;
@@ -323,6 +408,15 @@ else
             .OrderBy(c => c.MaskedCardNumber).ToList();
         if (!selectedAccountCards.Any(c => c.CardId == selectedCardId))
             selectedCardId = selectedAccountCards.FirstOrDefault()?.CardId ?? 0;
+    }
+
+    private void UpdateTransferSelection()
+    {
+        if (!accounts.Any(a => a.AccountId == transferFromAccountId))
+            transferFromAccountId = accounts.FirstOrDefault()?.AccountId ?? 0;
+
+        if (!accounts.Any(a => a.AccountId == transferToAccountId) || transferToAccountId == transferFromAccountId)
+            transferToAccountId = accounts.FirstOrDefault(a => a.AccountId != transferFromAccountId)?.AccountId ?? 0;
     }
 
     private async Task LoadLocationsAsync()
@@ -348,6 +442,53 @@ else
 
         message = $"Картата е създадена: {card.DisplayText}";
         messageClass = "alert-success";
+        await LoadDataAsync();
+    }
+
+    private async Task AddFundsAsync()
+    {
+        message = "";
+        if (selectedAccountId == 0) { SetError("Моля изберете сметка."); return; }
+        if (fundAmount <= 0) { SetError("Невалидна сума."); return; }
+
+        var (success, errorMessage) = await AdminService.AddFundsAsync(new AdminAddFundsRequest
+        {
+            AccountId = selectedAccountId,
+            Amount = fundAmount,
+            Description = fundDescription.Trim()
+        });
+
+        if (!success) { SetError($"Грешка: {errorMessage}"); return; }
+
+        message = "Парите са добавени успешно.";
+        messageClass = "alert-success";
+        fundAmount = 0;
+        fundDescription = "";
+        await LoadDataAsync();
+    }
+
+    private async Task TransferBetweenAccountsAsync()
+    {
+        message = "";
+        if (transferFromAccountId == 0) { SetError("Please select source account."); return; }
+        if (transferToAccountId == 0) { SetError("Please select destination account."); return; }
+        if (transferFromAccountId == transferToAccountId) { SetError("Source and destination accounts must be different."); return; }
+        if (transferAmount <= 0) { SetError("Invalid amount."); return; }
+
+        var (success, errorMessage) = await AdminService.TransferBetweenAccountsAsync(new AdminAccountTransferRequest
+        {
+            FromAccountId = transferFromAccountId,
+            ToAccountId = transferToAccountId,
+            Amount = transferAmount,
+            Description = transferDescription.Trim()
+        });
+
+        if (!success) { SetError($"Error: {BankInputNormalizer.ToDisplayError(errorMessage)}"); return; }
+
+        message = "Transfer completed successfully.";
+        messageClass = "alert-success";
+        transferAmount = 0;
+        transferDescription = "";
         await LoadDataAsync();
     }
 

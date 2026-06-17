@@ -3,6 +3,7 @@
 @inject AccountApiService AccountService
 @inject MovementApiService MovementService
 @inject TransferApiService TransferService
+@using BankAPP.Shared.Utilities
 
 <PageTitle>Преводи — BankApp</PageTitle>
 
@@ -176,10 +177,10 @@ else
         var selectedAccount = accounts.FirstOrDefault(a => a.Id == fromAccountId);
         if (selectedAccount == null) { SetError("Моля изберете изходяща сметка."); isLoading = false; return; }
 
-        var iban = toIban.Trim();
+        var iban = BankInputNormalizer.NormalizeIban(toIban);
         if (string.IsNullOrWhiteSpace(iban)) { SetError("Моля въведете IBAN на получателя."); isLoading = false; return; }
 
-        if (string.Equals(iban, selectedAccount.Iban, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(iban, BankInputNormalizer.NormalizeIban(selectedAccount.Iban), StringComparison.OrdinalIgnoreCase))
         { SetError("IBAN на получателя не може да е същия като изходящата сметка."); isLoading = false; return; }
 
         if (amount <= 0) { SetError("Невалидна сума."); isLoading = false; return; }
@@ -190,7 +191,7 @@ else
         var toAccount = await AccountService.GetAccountByIbanAsync(iban);
         if (toAccount == null) { SetError("IBAN не е намерен."); isLoading = false; return; }
 
-        var success = await TransferService.TransferAsync(new TransferRequest
+        var (success, errorMessage) = await TransferService.TransferAsync(new TransferRequest
         {
             FromAccountId = selectedAccount.Id,
             ToAccountId = toAccount.Id,
@@ -200,7 +201,7 @@ else
 
         isLoading = false;
 
-        if (!success) { SetError("Преводът е неуспешен."); return; }
+        if (!success) { SetError(BankInputNormalizer.ToDisplayError(errorMessage)); return; }
 
         message = "Преводът е изпратен за одобрение от администратора.";
         messageClass = "alert-success";

@@ -45,6 +45,10 @@
                                     StrokeThickness="0" StrokeShape="RoundRectangle 7" Padding="10,9">
                                 <Label Text="Плащания" FontSize="13" TextColor="White" VerticalOptions="Center"/>
                             </Border>
+                            <Button x:Name="SidebarAdminButton" Text="Admin" BackgroundColor="Transparent" TextColor="#77FFFFFF"
+                                    BorderWidth="0" CornerRadius="7" FontSize="13" HeightRequest="42"
+                                    HorizontalOptions="Fill" Padding="10,0" Clicked="OnNavigateToAdmin"
+                                    IsVisible="False"/>
                         </VerticalStackLayout>
                         <VerticalStackLayout Grid.Row="2" Padding="10,14">
                             <BoxView HeightRequest="0.5" Color="#33FFFFFF" Margin="0,0,0,12"/>
@@ -376,8 +380,8 @@
                     </ScrollView>
 
                     <!-- Bottom Navigation -->
-                    <Grid Grid.Row="1" BackgroundColor="White" ColumnDefinitions="*,*,*,*" Padding="0,8,0,12">
-                        <BoxView Grid.ColumnSpan="4" Color="{StaticResource BorderColor}"
+                    <Grid x:Name="MobileNavGrid" Grid.Row="1" BackgroundColor="White" ColumnDefinitions="*,*,*,*,*" Padding="0,8,0,12">
+                        <BoxView x:Name="MobileNavSeparator" Grid.ColumnSpan="5" Color="{StaticResource BorderColor}"
                                  HeightRequest="0.5" VerticalOptions="Start"/>
                         <VerticalStackLayout Grid.Column="0" HorizontalOptions="Center" Spacing="3">
                             <BoxView Color="Transparent" WidthRequest="4" HeightRequest="4" CornerRadius="2"/>
@@ -421,7 +425,24 @@
                             <Label Text="Плащания" FontSize="10" TextColor="{StaticResource Navy}"
                                    FontAttributes="Bold" HorizontalOptions="Center"/>
                         </VerticalStackLayout>
-                        <VerticalStackLayout Grid.Column="3" HorizontalOptions="Center" Spacing="3">
+                        <VerticalStackLayout x:Name="MobileNavAdminItem" Grid.Column="3" HorizontalOptions="Center" Spacing="3"
+                                             IsVisible="False">
+                            <BoxView Color="Transparent" WidthRequest="4" HeightRequest="4" CornerRadius="2"/>
+                            <Path Data="M12 2 L20 5 V11 C20 16 16 20 12 22 C8 20 4 16 4 11 V5 Z M9 12 L11 14 L15 10"
+                                  Stroke="{StaticResource TextMuted}" StrokeThickness="1.6"
+                                  StrokeLineCap="Round" StrokeLineJoin="Round"
+                                  WidthRequest="22" HeightRequest="22" Aspect="Uniform" HorizontalOptions="Center">
+                                <Path.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnNavigateToAdmin"/>
+                                </Path.GestureRecognizers>
+                            </Path>
+                            <Label Text="Admin" FontSize="10" TextColor="{StaticResource TextMuted}" HorizontalOptions="Center">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnNavigateToAdmin"/>
+                                </Label.GestureRecognizers>
+                            </Label>
+                        </VerticalStackLayout>
+                        <VerticalStackLayout x:Name="MobileNavLogoutItem" Grid.Column="4" HorizontalOptions="Center" Spacing="3">
                             <BoxView Color="Transparent" WidthRequest="4" HeightRequest="4" CornerRadius="2"/>
                             <Path Data="M20 21 L20 19 C20 17 18 16 16 16 L8 16 C6 16 4 17 4 19 L4 21 M12 12 C14 12 16 10 16 8 C16 6 14 4 12 4 C10 4 8 6 8 8 C8 10 10 12 12 12 Z"
                                   Stroke="{StaticResource TextMuted}" StrokeThickness="1.6"

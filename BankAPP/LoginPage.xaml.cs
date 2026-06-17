@@ -50,7 +50,10 @@ namespace BankAPP
             SessionManager.Token = loginResponse.Token;
 
             var appShell = _serviceProvider.GetRequiredService<AppShell>();
+            appShell.RefreshAdminVisibility();
             Application.Current!.MainPage = appShell;
+
+            appShell.NavigateTo(SessionManager.IsAdmin ? "Admin" : "Accounts");
         }
 
         private async void OnGoToRegisterClicked(object sender, EventArgs e)

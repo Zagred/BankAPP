@@ -29,7 +29,27 @@ namespace BankAPP
         protected override async void OnAppearing()
         {
             base.OnAppearing();
+            UpdateAdminNavigation();
             await LoadDataAsync();
+        }
+
+        private void UpdateAdminNavigation()
+        {
+            var isAdmin = SessionManager.IsAdmin;
+
+            try { SidebarAdminButton.IsVisible = isAdmin; } catch { }
+            try
+            {
+                MobileNavAdminItem.IsVisible = isAdmin;
+                MobileNavGrid.ColumnDefinitions.Clear();
+
+                for (var i = 0; i < (isAdmin ? 5 : 4); i++)
+                    MobileNavGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Star });
+
+                Grid.SetColumn(MobileNavLogoutItem, isAdmin ? 4 : 3);
+                Grid.SetColumnSpan(MobileNavSeparator, isAdmin ? 5 : 4);
+            }
+            catch { }
         }
 
         private async Task LoadDataAsync()
@@ -118,6 +138,9 @@ namespace BankAPP
 
         private void OnNavigateToTransfers(object sender, EventArgs e) =>
             ((AppShell)Shell.Current).NavigateTo("Transfers");
+
+        private void OnNavigateToAdmin(object sender, EventArgs e) =>
+            ((AppShell)Shell.Current).NavigateTo("Admin");
 
         private async void OnLogoutClicked(object sender, EventArgs e)
         {

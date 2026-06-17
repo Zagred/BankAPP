@@ -162,8 +162,8 @@ else
         accounts = await AccountService.GetMyAccountsAsync();
         var movements = await MovementService.GetMyMovementsAsync();
         totalBalance = accounts.Sum(a => a.Balance);
-        totalCredit = movements.Where(m => MovementTypes.IsIncome(m.MovementType)).Sum(m => m.Amount);
-        totalDebit = movements.Where(m => MovementTypes.IsExpense(m.MovementType)).Sum(m => m.Amount);
+        totalCredit = movements.Where(m => m.IsIncome).Sum(m => m.Amount);
+        totalDebit = movements.Where(m => m.IsExpense).Sum(m => m.Amount);
     }
 
     private async Task CreateAccountAsync()

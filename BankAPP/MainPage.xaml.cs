@@ -58,8 +58,8 @@ namespace BankAPP
         private void LoadSummary(List<AccountDto> accounts, List<Movement> movements)
         {
             var totalBalance = accounts.Sum(a => a.Balance);
-            var totalDebit = movements.Where(m => MovementTypes.IsExpense(m.MovementType)).Sum(m => m.Amount);
-            var totalCredit = movements.Where(m => MovementTypes.IsIncome(m.MovementType)).Sum(m => m.Amount);
+            var totalDebit = movements.Where(m => m.IsExpense).Sum(m => m.Amount);
+            var totalCredit = movements.Where(m => m.IsIncome).Sum(m => m.Amount);
             var transferCount = movements.Count(m => m.MovementType == MovementTypes.Transfer);
             var lastTransfer = movements
                 .Where(m => m.MovementType == MovementTypes.Transfer)
@@ -85,7 +85,7 @@ namespace BankAPP
                 {
                     Day = day,
                     Amount = movements
-                        .Where(m => MovementTypes.IsExpense(m.MovementType))
+                        .Where(m => m.IsExpense)
                         .Where(m => m.MovementDateTime.Date == day.Date)
                         .Sum(m => m.Amount)
                 })

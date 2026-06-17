@@ -1,5 +1,6 @@
 using BankAPP.Services;
 using BankAPP.Shared.DTOs;
+using BankAPP.Shared.Utilities;
 using System.Linq;
 
 namespace BankAPP
@@ -33,12 +34,15 @@ namespace BankAPP
                 MerchantPicker.ItemsSource = new List<AdminMerchantDto>();
                 LocationPicker.ItemsSource = new List<AdminLocationDto>();
                 CardPicker.ItemsSource = new List<AdminCardDto>();
+                TransferFromAccountPicker.ItemsSource = new List<AdminAccountDto>();
+                TransferToAccountPicker.ItemsSource = new List<AdminAccountDto>();
                 return;
             }
 
             StatusLabel.Text = string.Empty;
             _allAccounts = await _adminApiService.GetAllAccountsAsync();
             AccountsCollection.ItemsSource = _allAccounts;
+            UpdateAdminTransferSelection();
 
             var users = _allAccounts
                 .Select(a => a.Username)
@@ -56,6 +60,20 @@ namespace BankAPP
                 && merchantCollection.Count > 0 ? 0 : -1;
             await LoadLocationsAsync();
             await UpdateStats();
+        }
+
+        private void UpdateAdminTransferSelection()
+        {
+            var accounts = _allAccounts
+                .OrderBy(a => a.Username)
+                .ThenBy(a => a.Iban)
+                .ToList();
+
+            TransferFromAccountPicker.ItemsSource = accounts;
+            TransferToAccountPicker.ItemsSource = accounts;
+
+            TransferFromAccountPicker.SelectedIndex = accounts.Count > 0 ? 0 : -1;
+            TransferToAccountPicker.SelectedIndex = accounts.Count > 1 ? 1 : -1;
         }
 
         private async Task UpdateStats()
@@ -157,6 +175,107 @@ namespace BankAPP
 
         private async void OnMerchantChanged(object sender, EventArgs e) => await LoadLocationsAsync();
 
+        private async void OnAddFundsClicked(object sender, EventArgs e)
+        {
+            if (!SessionManager.IsAdmin)
+            {
+                await DisplayAlert("Access denied", "Only admin can add money to accounts.", "OK");
+                return;
+            }
+
+            if (AccountPicker.SelectedItem is not AdminAccountDto account)
+            {
+                await DisplayAlert("Validation error", "Please select an account.", "OK");
+                return;
+            }
+
+            if (!BankInputNormalizer.TryParseAmount(AddFundsAmountEntry.Text, out var amount) || amount <= 0)
+            {
+                await DisplayAlert("Validation error", "Please enter a valid amount.", "OK");
+                return;
+            }
+
+            var request = new AdminAddFundsRequest
+            {
+                AccountId = account.AccountId,
+                Amount = amount,
+                Description = AddFundsDescriptionEntry.Text?.Trim() ?? string.Empty
+            };
+
+            var (success, errorMessage) = await _adminApiService.AddFundsAsync(request);
+            if (success)
+            {
+                StatusLabel.TextColor = Microsoft.Maui.Graphics.Colors.Green;
+                StatusLabel.Text = "Money added successfully.";
+                AddFundsAmountEntry.Text = string.Empty;
+                AddFundsDescriptionEntry.Text = string.Empty;
+                await LoadAdminDashboardAsync();
+                await LoadPendingTransfersAsync();
+            }
+            else
+            {
+                StatusLabel.TextColor = Microsoft.Maui.Graphics.Colors.Red;
+                StatusLabel.Text = $"Error: {BankInputNormalizer.ToDisplayError(errorMessage)}";
+            }
+        }
+
+        private async void OnAdminTransferClicked(object sender, EventArgs e)
+        {
+            if (!SessionManager.IsAdmin)
+            {
+                await DisplayAlert("Access denied", "Only admin can transfer between accounts.", "OK");
+                return;
+            }
+
+            if (TransferFromAccountPicker.SelectedItem is not AdminAccountDto fromAccount)
+            {
+                await DisplayAlert("Validation error", "Please select source account.", "OK");
+                return;
+            }
+
+            if (TransferToAccountPicker.SelectedItem is not AdminAccountDto toAccount)
+            {
+                await DisplayAlert("Validation error", "Please select destination account.", "OK");
+                return;
+            }
+
+            if (fromAccount.AccountId == toAccount.AccountId)
+            {
+                await DisplayAlert("Validation error", "Source and destination accounts must be different.", "OK");
+                return;
+            }
+
+            if (!BankInputNormalizer.TryParseAmount(AdminTransferAmountEntry.Text, out var amount) || amount <= 0)
+            {
+                await DisplayAlert("Validation error", "Please enter a valid amount.", "OK");
+                return;
+            }
+
+            var request = new AdminAccountTransferRequest
+            {
+                FromAccountId = fromAccount.AccountId,
+                ToAccountId = toAccount.AccountId,
+                Amount = amount,
+                Description = AdminTransferDescriptionEntry.Text?.Trim() ?? string.Empty
+            };
+
+            var (success, errorMessage) = await _adminApiService.TransferBetweenAccountsAsync(request);
+            if (success)
+            {
+                StatusLabel.TextColor = Microsoft.Maui.Graphics.Colors.Green;
+                StatusLabel.Text = "Transfer completed successfully.";
+                AdminTransferAmountEntry.Text = string.Empty;
+                AdminTransferDescriptionEntry.Text = string.Empty;
+                await LoadAdminDashboardAsync();
+                await LoadPendingTransfersAsync();
+            }
+            else
+            {
+                StatusLabel.TextColor = Microsoft.Maui.Graphics.Colors.Red;
+                StatusLabel.Text = $"Error: {BankInputNormalizer.ToDisplayError(errorMessage)}";
+            }
+        }
+
         private async void OnCreatePosPaymentClicked(object sender, EventArgs e)
         {
             if (!SessionManager.IsAdmin)
@@ -177,7 +296,7 @@ namespace BankAPP
                 return;
             }
 
-            if (!decimal.TryParse(AmountEntry.Text, out var amount) || amount <= 0)
+            if (!BankInputNormalizer.TryParseAmount(AmountEntry.Text, out var amount) || amount <= 0)
             {
                 await DisplayAlert("Validation error", "Please enter a valid amount.", "OK");
                 return;

@@ -328,7 +328,7 @@ else
             .Select(day => new
             {
                 Day = day,
-                Amount = movements.Where(m => MovementTypes.IsExpense(m.MovementType) &&
+                Amount = movements.Where(m => m.IsExpense &&
                                               m.MovementDateTime.Date == day.Date).Sum(m => m.Amount)
             }).ToList();
 
